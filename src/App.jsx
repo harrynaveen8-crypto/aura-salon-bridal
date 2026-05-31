@@ -6,6 +6,10 @@ import { motion, useSpring, AnimatePresence } from 'framer-motion';
 import Home from './pages/Home';
 import Services from './pages/Services';
 import Booking from './pages/Booking';
+import Archive from './pages/Archive';
+import Journal from './pages/Journal';
+import AuraBackground from './components/AuraBackground';
+import SpinningBadge from './components/SpinningBadge';
 
 const Preloader = ({ onComplete }) => {
   return (
@@ -69,6 +73,8 @@ const Navigation = ({ show }) => {
         >
           <Link to="/" className="nav-logo hover-target" style={{ fontSize: '1.5rem', fontWeight: 600 }}>AURA.</Link>
           <div className="nav-links">
+            <Link to="/archive" className="hover-target">Archive</Link>
+            <Link to="/journal" className="hover-target">Journal</Link>
             <Link to="/services" className="hover-target">Menu</Link>
             <Link to="/booking" className="hover-target">Reserve</Link>
           </div>
@@ -94,6 +100,8 @@ function App() {
     <BrowserRouter>
       <div className={`app-wrapper theme-${theme}`}>
         <Preloader onComplete={() => setPreloaderComplete(true)} />
+        <AuraBackground />
+        <SpinningBadge />
         <LiquidCursor />
         <div className="noise"></div>
         <Navigation show={preloaderComplete} />
@@ -101,6 +109,8 @@ function App() {
         {preloaderComplete && (
           <Routes>
             <Route path="/" element={<Home setTheme={setTheme} revealImage={revealImage} setRevealImage={setRevealImage} />} />
+            <Route path="/archive" element={<Archive setTheme={setTheme} />} />
+            <Route path="/journal" element={<Journal setTheme={setTheme} />} />
             <Route path="/services" element={<Services setTheme={setTheme} />} />
             <Route path="/booking" element={<Booking setTheme={setTheme} />} />
           </Routes>

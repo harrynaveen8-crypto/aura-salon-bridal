@@ -53,10 +53,15 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
   });
 
   const heroRef = useRef(null);
+  // Track scroll for a sticky hero container to allow the clip-path expansion while scrolling
   const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const smoothHero = useSpring(heroScroll, { stiffness: 100, damping: 30 });
-  const heroScale = useTransform(smoothHero, [0, 1], [1, 1.3]);
-  const heroY = useTransform(smoothHero, [0, 1], ["0%", "20%"]);
+  
+  // Awwwards Clip-path expansion
+  const clipPath = useTransform(smoothHero, [0, 0.6], ["inset(35% 45% 35% 45% round 200px)", "inset(0% 0% 0% 0% round 0px)"]);
+  const imageScale = useTransform(smoothHero, [0, 0.6], [1.5, 1]);
+  const textYLeft = useTransform(smoothHero, [0, 0.6], ["0%", "-100%"]);
+  const textYRight = useTransform(smoothHero, [0, 0.6], ["0%", "100%"]);
 
   const horizontalRef = useRef(null);
   const { scrollYProgress: horizontalScroll } = useScroll({ target: horizontalRef });
@@ -68,20 +73,29 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
     <>
       <Flashbulb scrollProgress={pageScroll} />
 
-      <section className="hero" ref={heroRef}>
-        <motion.div className="hero-img-wrapper" style={{ scale: heroScale, y: heroY, zIndex: 1 }}>
-          <img src="/hero.png" alt="Aura" className="hero-img" style={{ opacity: 0.6 }} />
-        </motion.div>
-        
-        <div className="container hero-content-container" style={{ zIndex: 10 }}>
-          <div className="hero-text-grid">
-            <WordReveal text="ARTISTRY" className="text-massive kinetic-text" delay={0.2} />
-            <WordReveal text="UNLEASHED" className="text-massive text-editorial kinetic-text align-end" delay={0.6} />
+      {/* EXPERT LEVEL CLIP-PATH HERO */}
+      <section ref={heroRef} className="hero-scroll-container">
+        <div className="hero-sticky">
+          
+          <motion.div className="hero-dynamic-image" style={{ clipPath }}>
+            <motion.img src="/hero.png" alt="Aura" className="hero-img" style={{ scale: imageScale, opacity: 0.7 }} />
+          </motion.div>
+
+          <div className="container hero-content-container">
+            <div className="hero-text-grid">
+              <motion.div style={{ y: textYLeft, zIndex: 20 }}>
+                <WordReveal text="ARTISTRY" className="text-massive kinetic-text" delay={0.2} />
+              </motion.div>
+              <motion.div style={{ y: textYRight, zIndex: 20 }} className="align-end">
+                <WordReveal text="UNLEASHED" className="text-massive text-editorial kinetic-text" delay={0.6} />
+              </motion.div>
+            </div>
           </div>
+          
         </div>
       </section>
 
-      <section className="editorial-manifesto relative">
+      <section className="editorial-manifesto relative bg-base">
         <div className="container manifesto-grid hover-target">
            <div className="manifesto-left relative">
              <span className="tiny-label sticky-label">001 — THE ETHOS</span>
@@ -124,7 +138,7 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
         </div>
       </section>
 
-      <section className="services-section hover-target relative">
+      <section className="services-section hover-target relative bg-base">
          <div className="marquee-container">
             <div className="marquee-content">SCULPT • COLOR • STYLE • BRIDAL • EXTENSIONS • SCULPT • COLOR • STYLE • BRIDAL • EXTENSIONS •</div>
          </div>
@@ -220,7 +234,7 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
         </div>
       </section>
 
-      <footer className="footer-giant">
+      <footer className="footer-giant bg-base relative z-10">
         <div className="container text-center">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} transition={{ duration: 1.5, ease: [0.76, 0, 0.24, 1] }} viewport={{ once: true }}>
              <h2 className="text-massive text-editorial kinetic-text" style={{ color: 'var(--color-accent)' }}>AURA.</h2>
