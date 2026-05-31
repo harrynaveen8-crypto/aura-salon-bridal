@@ -1,79 +1,113 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const AssemblingSVG = ({ pathLength, opacity }) => {
-  // Generate a massive amount of bezier curves to simulate insane hair depth
-  const hairStripes = Array.from({ length: 150 }).map((_, i) => {
-    // Randomize control points to create organic flowing waves
-    const startX = 250 + (Math.random() * 40 - 20);
-    const startY = 150 + (Math.random() * 20 - 10);
+// Generates a perfectly combed "ribbon" of hair paths.
+// The strands run parallel, creating a sleek, glossy, high-fashion look.
+const generateRibbon = (idPrefix, startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY, strands, thickness, pathLength) => {
+  return Array.from({ length: strands }).map((_, i) => {
+    // Distribute strands smoothly across the defined thickness
+    const offset = (i - strands / 2) * (thickness / strands);
     
-    const cp1x = 100 + (Math.random() * 300);
-    const cp1y = 250 + (Math.random() * 100);
+    // Vary the stroke properties to create "highlights" (glossy effect)
+    const isHighlight = i % 8 === 0 || i % 13 === 0;
+    const strokeColor = isHighlight ? "#ffffff" : "var(--color-accent)";
+    const opacity = isHighlight ? 0.9 : 0.2;
+    const strokeWidth = isHighlight ? 1.2 : 0.5;
+
+    // Tapering: the offset is smaller at the roots and ends, wider in the middle belly of the curve
+    const rootX = startX + offset * 0.2;
+    const rootY = startY;
     
-    const cp2x = 50 + (Math.random() * 400);
-    const cp2y = 400 + (Math.random() * 100);
+    const control1X = cp1x + offset * 1.5;
+    const control1Y = cp1y;
     
-    const endX = 50 + (Math.random() * 400);
-    const endY = 550 + (Math.random() * 50);
+    const control2X = cp2x + offset * 1.2;
+    const control2Y = cp2y;
+    
+    const tipX = endX + offset * 0.1;
+    const tipY = endY;
 
     return (
       <motion.path 
-        key={i}
-        d={`M ${startX} ${startY} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${endX} ${endY}`} 
-        fill="transparent" 
-        stroke={Math.random() > 0.8 ? "var(--color-accent)" : "rgba(240, 235, 225, 0.2)"} 
-        strokeWidth={Math.random() * 1.5 + 0.2} 
-        style={{ pathLength }} 
+        key={`${idPrefix}-${i}`}
+        d={`M ${rootX} ${rootY} C ${control1X} ${control1Y} ${control2X} ${control2Y} ${tipX} ${tipY}`}
+        fill="transparent"
+        stroke={strokeColor}
+        strokeWidth={strokeWidth}
+        style={{ pathLength, opacity: pathLength }}
+        initial={{ opacity: 0 }}
       />
     );
   });
+};
+
+const AssemblingSVG = ({ pathLength, opacity }) => {
+  
+  // Mathematical representation of a sleek bridal updo with a cascading wave.
+  
+  // 1. The Crown Swoop (Pulling back tightly from the forehead to the nape)
+  const crownSwoop = generateRibbon("crown", 260, 100, 350, 150, 200, 280, 150, 320, 120, 60, pathLength);
+  
+  // 2. The Mid-Section Wave (Flowing seamlessly from the swoop)
+  const midWave = generateRibbon("mid", 150, 320, 100, 380, 280, 420, 250, 500, 150, 50, pathLength);
+  
+  // 3. The Tail / Ends (Cascading down the shoulder neatly)
+  const tailEnd = generateRibbon("tail", 250, 500, 220, 550, 300, 580, 280, 650, 100, 30, pathLength);
+
+  // 4. The Chignon / Bun (Elegant twist at the back of the head)
+  const bunTop = generateRibbon("bun-top", 180, 250, 80, 200, 80, 350, 150, 350, 80, 40, pathLength);
+  const bunBottom = generateRibbon("bun-bot", 150, 350, 250, 350, 250, 250, 180, 250, 80, 40, pathLength);
+  
+  // 5. The Face-Framing Strand (A single neat, S-curve falling near the cheek)
+  const faceFrame = generateRibbon("frame", 280, 120, 320, 200, 280, 280, 330, 350, 25, 6, pathLength);
 
   return (
     <div className="svg-assembly-container" style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       <motion.svg 
-        viewBox="0 0 500 600" 
+        viewBox="0 0 500 700" 
         style={{ width: '100%', height: '100%', maxWidth: '800px', opacity }}
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--color-accent)" />
-            <stop offset="100%" stopColor="#fff" />
-          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
 
-        {/* Dense geometric background mapping */}
-        <motion.circle cx="250" cy="300" r="220" fill="transparent" stroke="rgba(240, 235, 225, 0.03)" strokeWidth="1" style={{ pathLength }} />
-        <motion.circle cx="250" cy="300" r="180" fill="transparent" stroke="rgba(240, 235, 225, 0.05)" strokeWidth="1" style={{ pathLength }} />
-        <motion.circle cx="250" cy="300" r="140" fill="transparent" stroke="rgba(240, 235, 225, 0.08)" strokeWidth="1" style={{ pathLength }} />
+        {/* Abstract Architectural Lines (Background Structure) */}
+        <motion.circle cx="250" cy="350" r="250" fill="transparent" stroke="rgba(240, 235, 225, 0.02)" strokeWidth="1" style={{ pathLength }} />
+        <motion.line x1="250" y1="0" x2="250" y2="700" stroke="rgba(240, 235, 225, 0.05)" strokeWidth="1" strokeDasharray="4 4" style={{ pathLength }} />
+        <motion.line x1="0" y1="350" x2="500" y2="350" stroke="rgba(240, 235, 225, 0.05)" strokeWidth="1" strokeDasharray="4 4" style={{ pathLength }} />
 
-        {/* The Sharp Facial Silhouette */}
+        {/* The Facial Silhouette (Severe, high-fashion profile) */}
         <motion.path 
-          d="M 250 150 C 270 150 280 170 280 200 C 280 220 290 230 310 240 C 330 250 330 270 310 290 C 300 300 290 320 290 350 C 290 400 250 450 200 450" 
+          d="M 280 80 Q 290 120 300 150 C 330 180, 340 210, 360 230 Q 365 240 350 250 C 340 260, 330 270, 340 280 Q 360 290 350 300 C 330 320, 330 340, 340 360 Q 360 380 320 420 Q 280 460 280 500" 
           fill="transparent" 
-          stroke="var(--color-text)" 
-          strokeWidth="4" 
-          strokeLinecap="round"
-          style={{ pathLength }} 
-        />
-        <motion.path 
-          d="M 200 450 C 150 450 120 500 100 550" 
-          fill="transparent" 
-          stroke="var(--color-text)" 
-          strokeWidth="4" 
-          strokeLinecap="round"
+          stroke="rgba(240, 235, 225, 0.4)" 
+          strokeWidth="1.5" 
           style={{ pathLength }} 
         />
         
-        {/* Massive Hair Stripes Mapping */}
-        {hairStripes}
+        {/* Render Perfectly Combed Hair Ribbons */}
+        <g filter="url(#glow)">
+          {bunTop}
+          {bunBottom}
+          {crownSwoop}
+          {midWave}
+          {tailEnd}
+          {faceFrame}
+        </g>
+
+        {/* Assembly Tracking Nodes (Scientific / Reactor feel) */}
+        <motion.circle cx="280" cy="80" r="4" fill="var(--color-accent)" style={{ scale: pathLength }} />
+        <motion.circle cx="150" cy="320" r="3" fill="#fff" style={{ scale: pathLength }} />
+        <motion.circle cx="250" cy="500" r="4" fill="var(--color-accent)" style={{ scale: pathLength }} />
+        <motion.circle cx="280" cy="650" r="3" fill="#fff" style={{ scale: pathLength }} />
         
-        {/* Assembly tracking nodes */}
-        <motion.circle cx="250" cy="150" r="5" fill="var(--color-accent)" style={{ scale: pathLength }} />
-        <motion.circle cx="310" cy="240" r="4" fill="#fff" style={{ scale: pathLength }} />
-        <motion.circle cx="310" cy="290" r="4" fill="#fff" style={{ scale: pathLength }} />
-        <motion.circle cx="200" cy="450" r="5" fill="var(--color-accent)" style={{ scale: pathLength }} />
       </motion.svg>
     </div>
   );
