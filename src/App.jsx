@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Lenis from 'lenis';
 import { motion, useSpring, AnimatePresence } from 'framer-motion';
 
@@ -8,108 +8,86 @@ import Services from './pages/Services';
 import Booking from './pages/Booking';
 import Archive from './pages/Archive';
 import Journal from './pages/Journal';
-import AuraBackground from './components/AuraBackground';
-import SpinningBadge from './components/SpinningBadge';
 
-// ELEGANT TYPOGRAPHY & LOGO PRELOADER
-const Preloader = ({ onComplete }) => {
-  return (
-    <motion.div 
-      className="preloader-overlay"
-      initial={{ y: "0%" }}
-      animate={{ y: "-100%" }}
-      transition={{ duration: 1.4, ease: [0.76, 0, 0.24, 1], delay: 2.8 }}
-      onAnimationComplete={onComplete}
-      style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        padding: '0 10vw',
-        background: 'var(--color-bg)'
-      }}
-    >
-      <motion.div 
-        initial={{ opacity: 0, x: -50 }} 
-        animate={{ opacity: 1, x: 0 }} 
-        transition={{ duration: 1.5, ease: "easeOut" }} 
-        className="text-large text-editorial"
-        style={{ fontSize: 'clamp(2rem, 5vw, 5rem)' }}
-      >
-        LUXURY
-      </motion.div>
-      
-      <motion.div
-        initial={{ scale: 0.5, opacity: 0, rotate: 90 }}
-        animate={{ scale: 1, opacity: 1, rotate: 0 }}
-        transition={{ duration: 2, ease: [0.76, 0, 0.24, 1] }}
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}
-      >
-        <svg width="80" height="80" viewBox="0 0 100 100">
-          <motion.circle cx="50" cy="50" r="45" fill="none" stroke="var(--color-accent)" strokeWidth="1" 
-             initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 2 }} />
-          <motion.path d="M 50 15 L 85 80 L 15 80 Z" fill="none" stroke="var(--color-text)" strokeWidth="1" 
-             initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 2, delay: 0.5 }} />
-        </svg>
-        <span className="tiny-label" style={{ letterSpacing: '8px' }}>AURA</span>
-      </motion.div>
-
-      <motion.div 
-        initial={{ opacity: 0, x: 50 }} 
-        animate={{ opacity: 1, x: 0 }} 
-        transition={{ duration: 1.5, ease: "easeOut" }} 
-        className="text-large text-editorial"
-        style={{ fontSize: 'clamp(2rem, 5vw, 5rem)' }}
-      >
-        CRAFT
-      </motion.div>
-    </motion.div>
-  )
-}
-
-const LiquidCursor = () => {
+const LiquidCursor = ({ setCursorPos }) => {
   const cursorX = useSpring(-100, { stiffness: 800, damping: 35 });
   const cursorY = useSpring(-100, { stiffness: 800, damping: 35 });
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     const onMouseMove = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
+      setCursorPos({ x: e.clientX, y: e.clientY });
+
+      const target = e.target;
+      if (target.closest('a, button, .hover-target, input, textarea')) {
+        setHovered(true);
+      } else {
+        setHovered(false);
+      }
     };
     window.addEventListener("mousemove", onMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", onMouseMove);
-  }, [cursorX, cursorY]);
+  }, [cursorX, cursorY, setCursorPos]);
 
-  return <motion.div className="liquid-cursor" style={{ x: cursorX, y: cursorY }} />;
+  return <motion.div className={`liquid-cursor ${hovered ? 'hovered' : ''}`} style={{ x: cursorX, y: cursorY }} />;
 };
 
-const Navigation = ({ show }) => {
+const Navigation = () => {
   return (
-    <AnimatePresence>
-      {show && (
-        <motion.nav 
-          className="navbar" 
-          style={{ mixBlendMode: 'difference', color: '#fff' }}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, delay: 0.5, ease: [0.76, 0, 0.24, 1] }}
-        >
-          <Link to="/" className="nav-logo hover-target" style={{ fontSize: '1.5rem', fontWeight: 600 }}>AURA.</Link>
-          <div className="nav-links">
-            <Link to="/archive" className="hover-target">Archive</Link>
-            <Link to="/journal" className="hover-target">Journal</Link>
-            <Link to="/services" className="hover-target">Menu</Link>
-            <Link to="/booking" className="hover-target">Reserve</Link>
-          </div>
-        </motion.nav>
-      )}
-    </AnimatePresence>
+    <nav className="navbar">
+      <Link to="/" className="nav-logo hover-target" style={{ fontSize: '1.5rem', fontWeight: 600 }}>AURA.</Link>
+      <div className="nav-links">
+        <Link to="/archive" className="hover-target">Archive</Link>
+        <Link to="/journal" className="hover-target">Journal</Link>
+        <Link to="/services" className="hover-target">Menu</Link>
+        <Link to="/booking" className="hover-target">Reserve</Link>
+      </div>
+    </nav>
+  );
+};
+
+// PHYSICS-BASED WATER SPREAD BACKGROUND
+const WaterBackground = ({ theme, cursorPos }) => {
+  // Capture origin point exactly when the theme changes
+  const [origin, setOrigin] = useState({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+
+  useEffect(() => {
+    setOrigin(cursorPos);
+  }, [theme]);
+
+  // Aggressive exponential-out easing curve to simulate real water splashing
+  return (
+    <>
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -3, background: '#000000' }} />
+      <motion.div 
+        initial={false}
+        animate={{ 
+          clipPath: theme === 'light' 
+            ? `circle(3000px at ${origin.x}px ${origin.y}px)` 
+            : `circle(0px at ${origin.x}px ${origin.y}px)`
+        }}
+        transition={{ duration: 0.85, ease: [0.19, 1, 0.22, 1] }}
+        style={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          width: '100vw', 
+          height: '100vh', 
+          zIndex: -2, 
+          background: '#F0EBE1',
+          willChange: 'clip-path'
+        }}
+      />
+    </>
   );
 };
 
 function App() {
   const [theme, setTheme] = useState('dark');
   const [revealImage, setRevealImage] = useState(null);
-  const [preloaderComplete, setPreloaderComplete] = useState(false);
+  const [cursorPos, setCursorPos] = useState({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
   useEffect(() => {
     const lenis = new Lenis({ duration: 1.5, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smooth: true });
@@ -121,14 +99,10 @@ function App() {
   return (
     <BrowserRouter>
       <div className={`app-wrapper theme-${theme}`}>
-        <AnimatePresence>
-          {!preloaderComplete && <Preloader onComplete={() => setPreloaderComplete(true)} />}
-        </AnimatePresence>
-        <AuraBackground />
-        <SpinningBadge />
-        <LiquidCursor />
-        <div className="noise"></div>
-        <Navigation show={preloaderComplete} />
+        <WaterBackground theme={theme} cursorPos={cursorPos} />
+        
+        <LiquidCursor setCursorPos={setCursorPos} />
+        <Navigation />
         
         <Routes>
           <Route path="/" element={<Home setTheme={setTheme} revealImage={revealImage} setRevealImage={setRevealImage} />} />
