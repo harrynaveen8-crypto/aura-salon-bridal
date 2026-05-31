@@ -60,6 +60,13 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
   const textOpacity = useTransform(smoothHero, [0, 0.5], [1, 0]);
   const textY = useTransform(smoothHero, [0, 1], ["0%", "-50%"]);
 
+  const assemblyRef = useRef(null);
+  const { scrollYProgress: assemblyScroll } = useScroll({ target: assemblyRef, offset: ["start start", "end end"] });
+  // Map scroll progress of the 400vh container to 0-1 for the SVG drawing
+  const svgPathLength = useTransform(assemblyScroll, [0, 1], [0, 1]);
+  const svgOpacity = useTransform(assemblyScroll, [0, 0.05], [0, 1]);
+  const textFadeOut = useTransform(assemblyScroll, [0.8, 1], [1, 0]);
+
   const horizontalRef = useRef(null);
   const { scrollYProgress: horizontalScroll } = useScroll({ target: horizontalRef });
   const smoothHorizontal = useSpring(horizontalScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
@@ -89,13 +96,16 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
         </motion.div>
       </section>
 
-      {/* ZETTA-JOULE STYLE ASSEMBLY ANIMATION */}
-      <section className="bg-base py-16 relative z-10 border-bottom overflow-hidden">
-        <div className="container text-center mb-8">
-           <span className="tiny-label">CONSTRUCTING THE SILHOUETTE</span>
-        </div>
-        <div style={{ height: '80vh', width: '100vw' }}>
-           <AssemblingSVG />
+      {/* EXTREME ZETTA-JOULE ASSEMBLY ANIMATION - PAGE PINNED */}
+      <section ref={assemblyRef} className="bg-base relative z-10" style={{ height: '400vh' }}>
+        <div className="sticky-assembly" style={{ position: 'sticky', top: 0, height: '100vh', width: '100vw', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+           <motion.div style={{ opacity: textFadeOut }} className="text-center mb-8">
+              <span className="tiny-label">CONSTRUCTING THE SILHOUETTE</span>
+              <p className="editorial-text-small mt-4" style={{ maxWidth: '400px', margin: '0 auto' }}>Scroll to build the physical framework.</p>
+           </motion.div>
+           <div style={{ height: '70vh', width: '100vw' }}>
+              <AssemblingSVG pathLength={svgPathLength} opacity={svgOpacity} />
+           </div>
         </div>
       </section>
 

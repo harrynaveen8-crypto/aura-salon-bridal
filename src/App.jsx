@@ -11,51 +11,57 @@ import Journal from './pages/Journal';
 import AuraBackground from './components/AuraBackground';
 import SpinningBadge from './components/SpinningBadge';
 
-// INTERIORGLOBE.CO STYLE LOADING PERCENTAGE ANIMATION
+// ELEGANT TYPOGRAPHY & LOGO PRELOADER
 const Preloader = ({ onComplete }) => {
-  const [progress, setProgress] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
-
-  useEffect(() => {
-    let current = 0;
-    const interval = setInterval(() => {
-      // Non-linear counting speed for more realism
-      current += Math.floor(Math.random() * 12) + 2;
-      if (current >= 100) {
-        current = 100;
-        setIsComplete(true);
-        clearInterval(interval);
-        setTimeout(onComplete, 1200); // Hold at 100% briefly before sliding up
-      }
-      setProgress(current);
-    }, 70);
-    return () => clearInterval(interval);
-  }, [onComplete]);
-
   return (
     <motion.div 
       className="preloader-overlay"
       initial={{ y: "0%" }}
-      animate={{ y: isComplete ? "-100%" : "0%" }}
-      transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1], delay: 0.5 }}
-      style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '4vw' }}
+      animate={{ y: "-100%" }}
+      transition={{ duration: 1.4, ease: [0.76, 0, 0.24, 1], delay: 2.8 }}
+      onAnimationComplete={onComplete}
+      style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        padding: '0 10vw',
+        background: 'var(--color-bg)'
+      }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', overflow: 'hidden' }}>
-        <motion.span 
-          className="tiny-label" 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
-          transition={{ duration: 1 }}
-        >
-          {isComplete ? "AURA INITIALIZED." : "ASSEMBLING FRAMEWORK..."}
-        </motion.span>
-        <motion.h1 
-          className="text-massive kinetic-text" 
-          style={{ fontSize: '18vw', lineHeight: '0.75', margin: 0, color: 'var(--color-accent)' }}
-        >
-          {progress.toString().padStart(3, '0')}
-        </motion.h1>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0, x: -50 }} 
+        animate={{ opacity: 1, x: 0 }} 
+        transition={{ duration: 1.5, ease: "easeOut" }} 
+        className="text-large text-editorial"
+        style={{ fontSize: 'clamp(2rem, 5vw, 5rem)' }}
+      >
+        LUXURY
+      </motion.div>
+      
+      <motion.div
+        initial={{ scale: 0.5, opacity: 0, rotate: 90 }}
+        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+        transition={{ duration: 2, ease: [0.76, 0, 0.24, 1] }}
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}
+      >
+        <svg width="80" height="80" viewBox="0 0 100 100">
+          <motion.circle cx="50" cy="50" r="45" fill="none" stroke="var(--color-accent)" strokeWidth="1" 
+             initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 2 }} />
+          <motion.path d="M 50 15 L 85 80 L 15 80 Z" fill="none" stroke="var(--color-text)" strokeWidth="1" 
+             initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 2, delay: 0.5 }} />
+        </svg>
+        <span className="tiny-label" style={{ letterSpacing: '8px' }}>AURA</span>
+      </motion.div>
+
+      <motion.div 
+        initial={{ opacity: 0, x: 50 }} 
+        animate={{ opacity: 1, x: 0 }} 
+        transition={{ duration: 1.5, ease: "easeOut" }} 
+        className="text-large text-editorial"
+        style={{ fontSize: 'clamp(2rem, 5vw, 5rem)' }}
+      >
+        CRAFT
+      </motion.div>
     </motion.div>
   )
 }
