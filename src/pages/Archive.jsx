@@ -8,15 +8,44 @@ const Archive = ({ setTheme }) => {
   }, [setTheme]);
 
   const containerRef = useRef(null);
+  
+  // Track vertical scroll for the horizontal translation
   const { scrollYProgress } = useScroll({ target: containerRef });
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
-  const xTransform = useTransform(smoothProgress, [0, 1], ["0%", "-80%"]); // Horizontal translation
+  const xTransform = useTransform(smoothProgress, [0, 1], ["0%", "-85%"]); 
 
+  // Track raw scroll velocity for the 3D physics engine
   const { scrollY } = useScroll();
   const rawVelocity = useVelocity(scrollY);
-  const smoothVelocity = useSpring(rawVelocity, { damping: 50, stiffness: 400 });
-  // Map vertical scroll velocity to horizontal skew/slant
-  const skewX = useTransform(smoothVelocity, [-1500, 1500], [20, -20]);
+  const smoothVelocity = useSpring(rawVelocity, { damping: 40, stiffness: 300 });
+
+  // 3D BENDING PHYSICS 
+  // Map vertical scroll velocity to a 3D Y-axis rotation (the "bend")
+  const rotateY = useTransform(smoothVelocity, [-2000, 2000], [35, -35]);
+  // Slight Z-axis twist for organic drag
+  const rotateZ = useTransform(smoothVelocity, [-2000, 2000], [3, -3]);
+  // Scale down slightly under extreme momentum
+  const scale = useTransform(smoothVelocity, [-2000, 0, 2000], [0.85, 1, 0.85]);
+  // Dynamic shadows that pull opposite to the direction of velocity
+  const boxShadow = useTransform(
+    smoothVelocity,
+    [-2000, 0, 2000],
+    [
+      "40px 30px 60px rgba(0,0,0,0.9)", 
+      "0px 10px 20px rgba(0,0,0,0.2)",  
+      "-40px 30px 60px rgba(0,0,0,0.9)" 
+    ]
+  );
+  // Dynamic lighting/shading on the image itself
+  const imageFilter = useTransform(
+    smoothVelocity,
+    [-2000, 0, 2000],
+    [
+      "brightness(0.6) contrast(1.2)", 
+      "brightness(1) contrast(1)", 
+      "brightness(0.6) contrast(1.2)"
+    ]
+  );
 
   const images = [
     { src: "/hero.png", title: "Structure 01", aspect: "aspect-tall" },
@@ -27,37 +56,54 @@ const Archive = ({ setTheme }) => {
     { src: "/bridal.png", title: "Symmetry 06", aspect: "aspect-wide" },
     { src: "/hero.png", title: "Texture 07", aspect: "aspect-tall" },
     { src: "/salon.png", title: "Form 08", aspect: "aspect-wide" },
+    { src: "/bridal.png", title: "Light 09", aspect: "aspect-square" },
+    { src: "/hero.png", title: "Shadow 10", aspect: "aspect-tall" },
   ];
 
   return (
-    <div ref={containerRef} className="page-container relative z-10" style={{ height: '600vh', background: 'var(--color-bg)' }}>
-      <div className="sticky-horizontal-container" style={{ position: 'sticky', top: 0, height: '100vh', width: '100vw', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
+    <div ref={containerRef} className="page-container relative z-10" style={{ height: '700vh', background: 'var(--color-bg)' }}>
+      <div className="sticky-horizontal-container" style={{ position: 'sticky', top: 0, height: '100vh', width: '100vw', overflow: 'hidden', display: 'flex', alignItems: 'center', perspective: '1500px' }}>
         <motion.div 
           className="horizontal-track" 
-          style={{ x: xTransform, display: 'flex', alignItems: 'center', height: '100%', paddingLeft: '10vw' }}
+          style={{ x: xTransform, display: 'flex', alignItems: 'center', height: '100%', paddingLeft: '10vw', transformStyle: 'preserve-3d' }}
         >
           {/* Intro Text */}
           <div style={{ minWidth: '80vw', paddingRight: '10vw' }}>
-            <span className="tiny-label mb-8">THE ARCHIVE // V.01</span>
+            <span className="tiny-label mb-8">THE ARCHIVE // V.02</span>
             <h1 className="text-massive kinetic-text" style={{ lineHeight: 0.85 }}>VISUAL</h1><br/>
             <h1 className="text-massive text-editorial kinetic-text pl-8">INDEX.</h1>
             <p className="editorial-text mt-16 drop-cap" style={{ maxWidth: '600px' }}>
-              Scroll to explore. The faster you move, the more the visual fabric distorts. A complete horizontal catalog of structural interventions.
+              Scroll to explore. The faster you move, the more the visual fabric bends through 3D space. Engineered with dynamic tension physics.
             </p>
           </div>
 
-          {/* Slanted Image Gallery */}
-          <div style={{ display: 'flex', gap: '8vw', paddingRight: '20vw', alignItems: 'center' }}>
+          {/* 3D Bending Image Gallery */}
+          <div style={{ display: 'flex', gap: '10vw', paddingRight: '20vw', alignItems: 'center', transformStyle: 'preserve-3d' }}>
             {images.map((img, i) => (
               <motion.div 
                 key={i} 
                 className="hover-target"
-                style={{ skewX: skewX, minWidth: img.aspect === 'aspect-wide' ? '60vw' : '35vw', height: img.aspect === 'aspect-tall' ? '70vh' : '50vh', position: 'relative' }} 
+                style={{ 
+                  rotateY, 
+                  rotateZ, 
+                  scale, 
+                  boxShadow,
+                  minWidth: img.aspect === 'aspect-wide' ? '55vw' : '30vw', 
+                  height: img.aspect === 'aspect-tall' ? '65vh' : '45vh', 
+                  position: 'relative',
+                  transformOrigin: 'center center',
+                  borderRadius: '8px',
+                  backgroundColor: '#000',
+                }} 
               >
-                <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: '4px' }}>
-                  <img src={img.src} alt={img.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} className="liquid-image" />
+                <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: '8px' }}>
+                  <motion.img 
+                    src={img.src} 
+                    alt={img.title} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', filter: imageFilter }} 
+                  />
                 </div>
-                <div className="flex-between mt-4">
+                <div className="flex-between mt-6" style={{ position: 'absolute', bottom: '-40px', width: '100%', left: 0 }}>
                   <span className="tiny-label">ID // 00{i+1}</span>
                   <span className="editorial-text-small">{img.title}</span>
                 </div>
