@@ -1,147 +1,190 @@
-import React, { useEffect } from 'react';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 function App() {
-  useEffect(() => {
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-          behavior: 'smooth'
-        });
-      });
-    });
-  }, []);
+  const heroRef = useRef(null);
+  const { scrollYProgress: heroScroll } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+  
+  // Parallax effects
+  const heroY = useTransform(heroScroll, [0, 1], ["0%", "30%"]);
+  const heroOpacity = useTransform(heroScroll, [0, 1], [1, 0]);
+
+  // Reveal variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 60 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.6, 0.05, -0.01, 0.9] } }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.2 }
+    }
+  };
 
   return (
     <>
+      <div className="noise"></div>
+      
       <nav className="navbar">
-        <div className="nav-logo">AURA</div>
-        <ul className="nav-links">
-          <li><a href="#salon">Salon</a></li>
-          <li><a href="#bridal">Bridal</a></li>
-          <li><a href="#contact">Contact</a></li>
-        </ul>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.5 }}
+          className="nav-logo"
+        >
+          Aura.
+        </motion.div>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.7 }}
+          style={{ fontFamily: 'Syne', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '2px', cursor: 'pointer' }}
+        >
+          Book Now
+        </motion.div>
       </nav>
 
-      <header className="hero">
-        <img src="/hero.png" alt="Aura Beauty Salon" className="hero-bg" />
-        <div className="hero-overlay"></div>
+      <section className="hero" ref={heroRef}>
+        <motion.div className="hero-img-container" style={{ y: heroY, opacity: heroOpacity }}>
+          <img src="/hero.png" alt="Aura Beauty Salon" className="hero-img" />
+        </motion.div>
+        
         <div className="container">
-          <div className="hero-content">
-            <h1 className="title">Elevate Your Natural Beauty</h1>
-            <p className="subtitle" style={{marginBottom: '2rem'}}>
-              Experience luxury hair, skin, and bridal styling in a serene, modern oasis.
-            </p>
-            <div style={{display: 'flex', gap: '1rem', flexWrap: 'wrap'}}>
-              <a href="#salon" className="btn btn-primary">Discover Services</a>
-              <a href="#bridal" className="btn btn-outline">Bridal Packages</a>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <section id="salon" className="section container">
-        <h2 className="section-title">The Salon Experience</h2>
-        <div className="feature-section">
-          <div className="feature-image">
-            <div className="feature-image-wrapper">
-              <img src="/salon.png" alt="Luxurious Hair Salon" />
-            </div>
-          </div>
-          <div className="feature-content">
-            <span className="feature-label">Expert Care</span>
-            <h2>Bespoke Hair & Beauty</h2>
-            <p>
-              At Aura, we believe that true beauty starts with personalized care. Our master stylists and aestheticians take the time to understand your unique vision and lifestyle, crafting a look that is effortlessly you.
-            </p>
-            <p>
-              Using only premium, sustainably-sourced products, our signature treatments range from precision cuts and dimensional color to rejuvenating spa facials. Step into our minimalist haven and step out feeling entirely renewed.
-            </p>
-            <a href="#contact" className="btn btn-outline" style={{marginTop: '1rem'}}>Book an Appointment</a>
-          </div>
-        </div>
-
-        <div className="services-grid">
-          <div className="service-card">
-            <div className="service-icon">✨</div>
-            <h3>Signature Styling</h3>
-            <p>Precision haircuts, bespoke styling, and flawless blowouts tailored to your features.</p>
-          </div>
-          <div className="service-card">
-            <div className="service-icon">🎨</div>
-            <h3>Color & Highlights</h3>
-            <p>Balayage, foil highlights, and rich all-over color utilizing premium, damage-free formulas.</p>
-          </div>
-          <div className="service-card">
-            <div className="service-icon">🌿</div>
-            <h3>Rejuvenating Spa</h3>
-            <p>Customized facials, scalp treatments, and relaxation massages designed to restore balance.</p>
-          </div>
+          <motion.div 
+            className="hero-content"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.p className="hero-subtitle" variants={fadeInUp}>
+              The New Standard
+            </motion.p>
+            <motion.h1 className="text-huge" variants={fadeInUp}>
+              Elevated
+            </motion.h1>
+            <motion.h1 className="text-huge text-editorial" variants={fadeInUp} style={{ marginLeft: '10vw', marginTop: '-3vh' }}>
+              Aesthetics
+            </motion.h1>
+          </motion.div>
         </div>
       </section>
 
-      <section id="bridal" className="section" style={{backgroundColor: '#FFFFFF'}}>
-        <div className="container">
-          <h2 className="section-title">Bridal Elegance</h2>
-          <div className="feature-section reverse">
-            <div className="feature-image">
-              <div className="feature-image-wrapper">
-                <img src="/bridal.png" alt="Radiant Bride" />
-              </div>
-            </div>
-            <div className="feature-content">
-              <span className="feature-label">Your Special Day</span>
-              <h2>Flawless Editorial Bridal Looks</h2>
-              <p>
-                Your wedding day requires a look that translates beautifully both in person and on camera. Our bridal specialists are trained in high-definition makeup and long-lasting hair artistry.
-              </p>
-              <p>
-                We offer comprehensive bridal packages that include pre-wedding trials, skin preparation, and on-location services to ensure your morning is seamless, luxurious, and completely stress-free. Let us bring your dream bridal vision to life.
-              </p>
-              <ul style={{listStyle: 'none', marginBottom: '2rem'}}>
-                <li style={{marginBottom: '0.5rem'}}>✓ Comprehensive Bridal Consultations & Trials</li>
-                <li style={{marginBottom: '0.5rem'}}>✓ High-Definition Airbrush Makeup</li>
-                <li style={{marginBottom: '0.5rem'}}>✓ Intricate Updos & Hollywood Waves</li>
-                <li style={{marginBottom: '0.5rem'}}>✓ Full Bridal Party Styling Services</li>
-              </ul>
-              <a href="#contact" className="btn btn-primary">Inquire About Dates</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="contact" className="contact-section">
-        <div className="container">
-          <h2>Ready to Transform?</h2>
-          <p style={{maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem'}}>
-            Reach out to our front desk to schedule a consultation, book an appointment, or inquire about our specialized bridal services.
-          </p>
+      <section className="editorial-section container">
+        <div className="grid-asymmetric">
+          <motion.div 
+            initial="hidden" 
+            whileInView="visible" 
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+          >
+            <img src="/salon.png" alt="Salon Experience" className="img-tall" />
+          </motion.div>
           
-          <div className="contact-details">
-            <div className="contact-item">
-              <h4>Call Us</h4>
-              <p>+1 (555) 123-4567</p>
-            </div>
-            <div className="contact-item">
-              <h4>Email</h4>
-              <p>hello@aurabeauty.com</p>
-            </div>
-            <div className="contact-item">
-              <h4>Visit Us</h4>
-              <p>123 Luxury Lane, Design District</p>
-              <p>New York, NY 10001</p>
-            </div>
-          </div>
-          
-          <button className="btn btn-outline" style={{borderColor: '#fff', color: '#fff'}} onClick={() => alert('Booking modal would open here!')}>
-            Book Online Now
-          </button>
+          <motion.div
+            initial="hidden" 
+            whileInView="visible" 
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            style={{ padding: '0 2vw' }}
+          >
+            <motion.span className="section-label" variants={fadeInUp}>01 — The Space</motion.span>
+            <motion.h2 className="text-editorial" variants={fadeInUp} style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', color: '#e4e4e7' }}>
+              Redefining <br/><span style={{ color: 'var(--color-accent)' }}>Luxury</span>
+            </motion.h2>
+            <motion.p className="editorial-text" variants={fadeInUp}>
+              Forget the chaotic salon floor. Aura is designed as a minimalist sanctuary where brutalist architecture meets soft, organic beauty. We curate bespoke hair and skin transformations in an environment that demands you exhale.
+            </motion.p>
+            <motion.button className="btn-magnetic" variants={fadeInUp}>
+              Explore Services
+            </motion.button>
+          </motion.div>
         </div>
       </section>
 
-      <footer>
+      <section className="editorial-section container" style={{ paddingTop: 0 }}>
+        <div className="grid-asymmetric reverse">
+          <motion.div
+            initial="hidden" 
+            whileInView="visible" 
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            style={{ padding: '0 2vw' }}
+          >
+            <motion.span className="section-label" variants={fadeInUp}>02 — Bridal</motion.span>
+            <motion.h2 className="text-editorial" variants={fadeInUp} style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', color: '#e4e4e7' }}>
+              Editorial <br/><span style={{ color: 'var(--color-accent)' }}>Bridal</span>
+            </motion.h2>
+            <motion.p className="editorial-text" variants={fadeInUp}>
+              Your wedding look shouldn't feel like a costume. Our bridal artists specialize in high-fashion, camera-ready styling that enhances your natural architecture. Unapologetically modern, flawlessly executed.
+            </motion.p>
+            <motion.button className="btn-magnetic" variants={fadeInUp}>
+              Bridal Inquiries
+            </motion.button>
+          </motion.div>
+
+          <motion.div 
+            initial="hidden" 
+            whileInView="visible" 
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+          >
+            <img src="/bridal.png" alt="Bridal Styling" className="img-wide" />
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="editorial-section container">
+        <motion.span 
+          initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}
+          className="section-label"
+        >
+          03 — Our Signature Menu
+        </motion.span>
+        
+        <ul className="services-list">
+          {['Precision Cut & Style', 'Dimensional Color & Balayage', 'Editorial Makeup', 'Restorative Skin Treatments'].map((service, i) => (
+            <motion.li 
+              key={i}
+              className="service-item"
+              initial="hidden" 
+              whileInView="visible" 
+              viewport={{ once: true, margin: "-50px" }}
+              variants={{
+                hidden: { opacity: 0, x: -50 },
+                visible: { opacity: 1, x: 0, transition: { duration: 0.6, delay: i * 0.1 } }
+              }}
+            >
+              <h3>{service}</h3>
+              <span>Discover +</span>
+            </motion.li>
+          ))}
+        </ul>
+      </section>
+
+      <footer className="footer">
         <div className="container">
-          <p>&copy; 2026 Aura Beauty & Bridal Salon. All rights reserved.</p>
+          <motion.h2 
+            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}
+            className="footer-huge"
+          >
+            Ready to <br/>Transform?
+          </motion.h2>
+          <motion.button 
+            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}
+            className="btn-magnetic" style={{ backgroundColor: 'var(--color-text)', color: 'var(--color-bg)' }}
+          >
+            Book Appointment
+          </motion.button>
+          
+          <div style={{ marginTop: '15vh', display: 'flex', justifyContent: 'space-between', fontFamily: 'Syne', fontSize: '0.8rem', color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <span>© 2026 Aura Studios</span>
+            <span>New York City</span>
+          </div>
         </div>
       </footer>
     </>
