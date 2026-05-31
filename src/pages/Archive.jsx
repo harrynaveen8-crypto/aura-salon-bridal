@@ -1,5 +1,44 @@
 import React, { useEffect, useRef } from 'react';
-import { motion, useScroll, useSpring, useTransform, useVelocity } from 'framer-motion';
+import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
+
+const GalleryArtwork = ({ src, title, id, initialZ, initialX, initialY, scrollProgress }) => {
+  // We simulate walking 15,000px deep into the gallery
+  const z = useTransform(scrollProgress, [0, 1], [initialZ, initialZ + 15000]);
+  
+  // Physics of passing by the artwork
+  // -3000 to -1000: Emerging from the dark distance
+  // -500 to 0: Peak focus directly in front of the user
+  // 500 to 1000: Passed the camera, rushing behind the user
+  const opacity = useTransform(z, [-4000, -2000, -500, 0, 600, 1000], [0, 0.4, 1, 1, 0, 0]);
+  const blur = useTransform(z, [-4000, -1000, 0, 600], ["blur(20px)", "blur(5px)", "blur(0px)", "blur(15px)"]);
+  const brightness = useTransform(z, [-4000, -1000, 0, 600], ["brightness(0.1)", "brightness(0.4)", "brightness(1)", "brightness(0)"]);
+  const scale = useTransform(z, [-4000, 0, 1000], [0.5, 1, 2.5]);
+
+  return (
+    <motion.div 
+      style={{ 
+        position: 'absolute', 
+        left: initialX, 
+        top: initialY, 
+        z, 
+        opacity, 
+        filter: blur,
+        scale,
+        transformOrigin: 'center center'
+      }}
+      className="gallery-artwork hover-target"
+    >
+      <motion.img 
+        src={src} 
+        alt={title} 
+        style={{ width: '40vw', height: 'auto', maxHeight: '70vh', objectFit: 'cover', filter: brightness }} 
+      />
+      <div className="flex-between mt-4" style={{ width: '10vw' }}>
+        <span className="tiny-label">ARCHIVE // {id}</span>
+      </div>
+    </motion.div>
+  );
+};
 
 const Archive = ({ setTheme }) => {
   useEffect(() => {
@@ -9,136 +48,76 @@ const Archive = ({ setTheme }) => {
 
   const containerRef = useRef(null);
   
+  // Total depth of the gallery scroll
   const { scrollYProgress } = useScroll({ target: containerRef });
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
-  const xTransform = useTransform(smoothProgress, [0, 1], ["0%", "-85%"]); 
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 60, damping: 20 });
 
-  const { scrollY } = useScroll();
-  const rawVelocity = useVelocity(scrollY);
-  // Extremely responsive spring for aggressive physics
-  const smoothVelocity = useSpring(rawVelocity, { damping: 40, stiffness: 400 });
-
-  // 3D DIMENSIONAL BENDING PHYSICS
-  
-  // 1. Angular Rotations
-  const rotateY = useTransform(smoothVelocity, [-2000, 2000], [45, -45]);
-  const rotateX = useTransform(smoothVelocity, [-2000, 2000], [10, -10]);
-  const rotateZ = useTransform(smoothVelocity, [-2000, 2000], [4, -4]);
-  
-  // 2. Z-Axis Dimension (Pushing the card deep into 3D space based on force)
-  const z = useTransform(smoothVelocity, [-2000, 0, 2000], [-400, 0, -400]);
-  
-  // 3. The "Sail Curve" (Physically warping the geometry to simulate bending under pressure)
-  const borderRadius = useTransform(
-    smoothVelocity,
-    [-2000, 0, 2000],
-    [
-      "15vw 4px 4px 15vw", // Forces the image to look like it's bending/bowing
-      "4px 4px 4px 4px",  
-      "4px 15vw 15vw 4px" 
-    ]
-  );
-
-  // 4. Dynamic Parallax within the image to enhance the depth illusion
-  const imageX = useTransform(smoothVelocity, [-2000, 2000], ["-10%", "10%"]);
-
-  // 5. Environmental Lighting & Shadows
-  const boxShadow = useTransform(
-    smoothVelocity,
-    [-2000, 0, 2000],
-    [
-      "60px 40px 80px rgba(0,0,0,0.95)", 
-      "0px 10px 20px rgba(0,0,0,0.2)",  
-      "-60px 40px 80px rgba(0,0,0,0.95)" 
-    ]
-  );
-  const imageFilter = useTransform(
-    smoothVelocity,
-    [-2000, 0, 2000],
-    [
-      "brightness(0.5) contrast(1.3) saturate(0.8)", 
-      "brightness(1) contrast(1) saturate(1)", 
-      "brightness(0.5) contrast(1.3) saturate(0.8)"
-    ]
-  );
-
-  const images = [
-    { src: "/hero.png", title: "Structure 01", aspect: "aspect-tall" },
-    { src: "/salon.png", title: "Geometry 02", aspect: "aspect-wide" },
-    { src: "/bridal.png", title: "Elegance 03", aspect: "aspect-square" },
-    { src: "/hero.png", title: "Volume 04", aspect: "aspect-tall" },
-    { src: "/salon.png", title: "Precision 05", aspect: "aspect-square" },
-    { src: "/bridal.png", title: "Symmetry 06", aspect: "aspect-wide" },
-    { src: "/hero.png", title: "Texture 07", aspect: "aspect-tall" },
-    { src: "/salon.png", title: "Form 08", aspect: "aspect-wide" },
-    { src: "/bridal.png", title: "Light 09", aspect: "aspect-square" },
-    { src: "/hero.png", title: "Shadow 10", aspect: "aspect-tall" },
+  // Array of 12 distinct artworks scattered deeply across Z-space
+  // They alternate left, right, center, high, low to simulate a 3D museum corridor.
+  const artworks = [
+    { src: "/hero.png", title: "Structure 01", z: -1000, x: "10vw", y: "15vh" },
+    { src: "/salon.png", title: "Geometry 02", z: -2500, x: "50vw", y: "10vh" },
+    { src: "/bridal.png", title: "Elegance 03", z: -4000, x: "20vw", y: "30vh" },
+    { src: "/hero.png", title: "Volume 04", z: -5500, x: "55vw", y: "40vh" },
+    { src: "/salon.png", title: "Precision 05", z: -7000, x: "5vw", y: "20vh" },
+    { src: "/bridal.png", title: "Symmetry 06", z: -8500, x: "45vw", y: "10vh" },
+    { src: "/hero.png", title: "Texture 07", z: -10000, x: "25vw", y: "25vh" },
+    { src: "/salon.png", title: "Form 08", z: -11500, x: "60vw", y: "15vh" },
+    { src: "/bridal.png", title: "Light 09", z: -13000, x: "10vw", y: "40vh" },
+    { src: "/hero.png", title: "Shadow 10", z: -14500, x: "40vw", y: "20vh" },
   ];
 
   return (
-    <div ref={containerRef} className="page-container relative z-10" style={{ height: '700vh', background: 'var(--color-bg)' }}>
-      <div className="sticky-horizontal-container" style={{ position: 'sticky', top: 0, height: '100vh', width: '100vw', overflow: 'hidden', display: 'flex', alignItems: 'center', perspective: '1200px' }}>
-        <motion.div 
-          className="horizontal-track" 
-          style={{ x: xTransform, display: 'flex', alignItems: 'center', height: '100%', paddingLeft: '10vw', transformStyle: 'preserve-3d' }}
-        >
-          {/* Intro Text */}
-          <div style={{ minWidth: '80vw', paddingRight: '10vw' }}>
-            <span className="tiny-label mb-8">THE ARCHIVE // V.03</span>
-            <h1 className="text-massive kinetic-text" style={{ lineHeight: 0.85 }}>VISUAL</h1><br/>
-            <h1 className="text-massive text-editorial kinetic-text pl-8">INDEX.</h1>
-            <p className="editorial-text mt-16 drop-cap" style={{ maxWidth: '600px' }}>
-              We have completely abandoned flat design. Scroll forcefully to observe the physical canvas bow, curve, and sink into the Z-dimension under the sheer pressure of momentum.
-            </p>
-          </div>
+    <div ref={containerRef} className="page-container relative z-10" style={{ height: '1000vh', background: 'var(--color-bg)' }}>
+      {/* The physical gallery space */}
+      <div style={{ position: 'sticky', top: 0, height: '100vh', width: '100vw', overflow: 'hidden', perspective: '1200px', background: '#0a0908' }}>
+        
+        {/* HUD UI overlay */}
+        <div style={{ position: 'absolute', top: '10vh', left: '5vw', zIndex: 100 }}>
+           <span className="tiny-label mb-2">DIGITAL EXHIBITION</span>
+           <h1 className="text-large text-editorial" style={{ fontSize: '2rem' }}>The Corridor.</h1>
+        </div>
+        <div style={{ position: 'absolute', bottom: '10vh', right: '5vw', zIndex: 100, textAlign: 'right' }}>
+           <span className="tiny-label mb-2">NAVIGATION</span>
+           <p className="editorial-text-small">Scroll forward to walk through the space.<br/>You are navigating the Z-axis.</p>
+        </div>
+        
+        {/* Crosshair / Focal Point to ground the 3D space */}
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.1, zIndex: 0, pointerEvents: 'none' }}>
+           <div style={{ width: '1px', height: '40px', background: 'var(--color-accent)', margin: '0 auto' }}></div>
+           <div style={{ width: '40px', height: '1px', background: 'var(--color-accent)', marginTop: '-20px' }}></div>
+        </div>
 
-          {/* 3D Bending Image Gallery */}
-          <div style={{ display: 'flex', gap: '10vw', paddingRight: '20vw', alignItems: 'center', transformStyle: 'preserve-3d' }}>
-            {images.map((img, i) => (
-              <motion.div 
-                key={i} 
-                className="archive-card-wrapper hover-target"
-                style={{ 
-                  rotateX,
-                  rotateY, 
-                  rotateZ, 
-                  z,
-                  boxShadow,
-                  minWidth: img.aspect === 'aspect-wide' ? '55vw' : '30vw', 
-                  height: img.aspect === 'aspect-tall' ? '65vh' : '45vh', 
-                  position: 'relative',
-                  transformOrigin: 'center center',
-                  backgroundColor: '#000',
-                  borderRadius, // This provides the physical curving illusion
-                  overflow: 'hidden'
-                }} 
-              >
-                <motion.div style={{ width: '100%', height: '100%', x: imageX }}>
-                  <motion.img 
-                    src={img.src} 
-                    alt={img.title} 
-                    style={{ 
-                      width: '120%', 
-                      height: '100%', 
-                      objectFit: 'cover', 
-                      filter: imageFilter,
-                      position: 'absolute',
-                      left: '-10%'
-                    }} 
-                  />
-                </motion.div>
-                <div className="flex-between mt-6" style={{ position: 'absolute', bottom: '-40px', width: '100%', left: 0 }}>
-                  <span className="tiny-label">ID // 00{i+1}</span>
-                  <span className="editorial-text-small">{img.title}</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-          
-          <div style={{ minWidth: '50vw', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-             <h2 className="text-large text-editorial">End of Index.</h2>
-          </div>
+        {/* 3D Transform Container holding the artworks */}
+        <div style={{ width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d' }}>
+          {artworks.map((art, i) => (
+            <GalleryArtwork 
+              key={i}
+              id={`00${i+1}`}
+              src={art.src}
+              title={art.title}
+              initialZ={art.z}
+              initialX={art.x}
+              initialY={art.y}
+              scrollProgress={smoothProgress}
+            />
+          ))}
+        </div>
+        
+        {/* End of Gallery text emerging from the absolute distance */}
+        <motion.div 
+          style={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)',
+            z: useTransform(smoothProgress, [0, 1], [-16000, 0]),
+            opacity: useTransform(smoothProgress, [0.8, 1], [0, 1])
+          }}
+        >
+           <h1 className="text-massive text-editorial" style={{ whiteSpace: 'nowrap' }}>Exit Corridor.</h1>
         </motion.div>
+
       </div>
     </div>
   );
