@@ -6,20 +6,37 @@ import Lenis from 'lenis';
 // AWWWARDS-GRADE UI COMPONENTS
 // -------------------------------------------------------------
 
-const LiquidCursor = () => {
+const LiquidCursor = ({ revealImage }) => {
   const cursorX = useSpring(-100, { stiffness: 800, damping: 35 });
   const cursorY = useSpring(-100, { stiffness: 800, damping: 35 });
+
+  // Spring for the image reveal (slightly slower/lagging for parallax feel)
+  const imgX = useSpring(-100, { stiffness: 400, damping: 40 });
+  const imgY = useSpring(-100, { stiffness: 400, damping: 40 });
 
   useEffect(() => {
     const onMouseMove = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
+      imgX.set(e.clientX);
+      imgY.set(e.clientY);
     };
     window.addEventListener("mousemove", onMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", onMouseMove);
-  }, [cursorX, cursorY]);
+  }, [cursorX, cursorY, imgX, imgY]);
 
-  return <motion.div className="liquid-cursor" style={{ x: cursorX, y: cursorY }} />;
+  return (
+    <>
+      <motion.div className="liquid-cursor" style={{ x: cursorX, y: cursorY }} />
+      {/* High-end floating image reveal attached to cursor */}
+      <motion.div 
+        className={`cursor-image-reveal ${revealImage ? 'active' : ''}`}
+        style={{ x: imgX, y: imgY }}
+      >
+        {revealImage && <img src={revealImage} alt="Reveal" />}
+      </motion.div>
+    </>
+  );
 };
 
 const Flashbulb = ({ scrollProgress }) => {
@@ -45,6 +62,7 @@ const Flashbulb = ({ scrollProgress }) => {
 
 function App() {
   const [theme, setTheme] = useState('dark');
+  const [revealImage, setRevealImage] = useState(null);
 
   useEffect(() => {
     const lenis = new Lenis({ duration: 1.5, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smooth: true });
@@ -60,14 +78,12 @@ function App() {
     else if (latest <= 0.95 && theme !== 'dark') setTheme('dark');
   });
 
-  // Hero Parallax
   const heroRef = useRef(null);
   const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const smoothHero = useSpring(heroScroll, { stiffness: 100, damping: 30 });
   const heroScale = useTransform(smoothHero, [0, 1], [1, 1.3]);
   const heroY = useTransform(smoothHero, [0, 1], ["0%", "20%"]);
 
-  // Horizontal Scroll Setup
   const horizontalRef = useRef(null);
   const { scrollYProgress: horizontalScroll } = useScroll({ target: horizontalRef });
   const smoothHorizontal = useSpring(horizontalScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
@@ -76,7 +92,7 @@ function App() {
 
   return (
     <div className={`app-wrapper theme-${theme}`}>
-      <LiquidCursor />
+      <LiquidCursor revealImage={revealImage} />
       <Flashbulb scrollProgress={pageScroll} />
       <div className="noise"></div>
 
@@ -87,7 +103,7 @@ function App() {
         </div>
       </nav>
 
-      {/* 1. PROFESSIONAL HERO (Removed Fog Gimmick) */}
+      {/* 1. PROFESSIONAL HERO */}
       <section className="hero" ref={heroRef}>
         <motion.div className="hero-img-wrapper" style={{ scale: heroScale, y: heroY, zIndex: 1 }}>
           <img src="/hero.png" alt="Aura" className="hero-img" style={{ opacity: 0.7 }} />
@@ -105,12 +121,20 @@ function App() {
         </div>
       </section>
 
-      {/* 2. PROFESSIONAL MANIFESTO (Replaced choppy scrub with Editorial Grid) */}
+      {/* 2. PSYCHOLOGICALLY HOOKING MANIFESTO (Rich Details added) */}
       <section className="editorial-manifesto relative">
         <div className="container manifesto-grid hover-target">
-           <div className="manifesto-left">
-             <span className="tiny-label">001 — THE ETHOS</span>
+           
+           {/* Detail: Left Column vertical ticker */}
+           <div className="manifesto-left relative">
+             <span className="tiny-label sticky-label">001 — THE ETHOS</span>
+             <div className="vertical-ticker">
+               <div className="vertical-ticker-content">
+                  AESTHETIC / CRAFT / VISION / AESTHETIC / CRAFT / VISION / AESTHETIC / CRAFT / VISION
+               </div>
+             </div>
            </div>
+
            <div className="manifesto-right">
              <motion.h2 
                initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1 }}
@@ -119,12 +143,37 @@ function App() {
                We do not follow trends. <br/>
                <span className="text-editorial">We engineer them.</span>
              </motion.h2>
+
+             {/* Detail: High contrast drop-cap and cursor-hover image reveals */}
              <motion.p 
                initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1, delay: 0.2 }}
-               className="editorial-text mt-8"
+               className="editorial-text mt-8 drop-cap"
              >
-               Hair is not just material; it is a structural canvas. Our approach marries architectural precision with raw, unapologetic aesthetics. Every cut, every formulation, every movement is meticulously calculated to elevate your natural geometry. Welcome to the avant-garde.
+               Hair is not just material; it is a structural canvas. Our approach marries 
+               <span className="text-reveal-trigger" onMouseEnter={() => setRevealImage('/salon.png')} onMouseLeave={() => setRevealImage(null)}> architectural precision </span> 
+               with raw, unapologetic aesthetics. Every cut, every formulation, every movement is meticulously calculated to elevate your 
+               <span className="text-reveal-trigger" onMouseEnter={() => setRevealImage('/bridal.png')} onMouseLeave={() => setRevealImage(null)}> natural geometry</span>. 
+               Welcome to the avant-garde.
              </motion.p>
+
+             {/* Detail: Subtle technical stats block */}
+             <motion.div 
+               initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1, delay: 0.4 }}
+               className="manifesto-stats mt-8"
+             >
+               <div className="stat-block">
+                 <span className="stat-value">EST.</span>
+                 <span className="stat-label">2026</span>
+               </div>
+               <div className="stat-block">
+                 <span className="stat-value">04</span>
+                 <span className="stat-label">MASTER DIRECTORS</span>
+               </div>
+               <div className="stat-block">
+                 <span className="stat-value">12K</span>
+                 <span className="stat-label">HOURS OF CRAFT</span>
+               </div>
+             </motion.div>
            </div>
         </div>
       </section>
@@ -180,7 +229,6 @@ function App() {
               </div>
             </div>
 
-            {/* Gallery Panel 1: Studio (High Detail) */}
             <div className="horizontal-panel border-right">
                <div className="panel-split">
                  <div className="panel-text relative">
@@ -198,7 +246,6 @@ function App() {
                    <div className="panel-img-wrapper main-img" style={{ borderRadius: '0 100px 0 100px' }}>
                      <motion.img src="/salon.png" alt="Salon" className="panel-img liquid-image" style={{ x: imageParallax, scale: 1.2 }} />
                    </div>
-                   {/* Secondary Inset Detail Image */}
                    <motion.div className="panel-img-wrapper inset-img" initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 0.8 }}>
                      <img src="/bridal.png" alt="Detail" className="panel-img liquid-image" />
                    </motion.div>
@@ -206,14 +253,12 @@ function App() {
                </div>
             </div>
 
-            {/* Gallery Panel 2: Bridal (High Detail) */}
             <div className="horizontal-panel border-right">
                <div className="panel-split reverse">
                  <div className="panel-img-group hover-target">
                    <div className="panel-img-wrapper main-img" style={{ borderRadius: '100px 100px 0 0' }}>
                      <motion.img src="/bridal.png" alt="Bridal" className="panel-img liquid-image" style={{ x: imageParallax, scale: 1.2 }} />
                    </div>
-                   {/* Secondary Inset Detail Image */}
                    <motion.div className="panel-img-wrapper inset-img-left" initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 0.8 }}>
                      <img src="/salon.png" alt="Detail" className="panel-img liquid-image" />
                    </motion.div>
@@ -242,7 +287,7 @@ function App() {
         </div>
       </section>
 
-      {/* 5. Footer (ACT 5 completes here) */}
+      {/* 5. Footer */}
       <footer className="footer-giant">
         <div className="container text-center">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }} viewport={{ once: true }}>
