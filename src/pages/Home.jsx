@@ -43,7 +43,7 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
   const { scrollYProgress: horizontalScroll } = useScroll({ target: horizontalRef });
   const smoothHorizontal = useSpring(horizontalScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
   // Adjusted horizontal tracking to give more tension at the end before dropping to the footer
-  const xTransform = useTransform(smoothHorizontal, [0, 0.8, 1], ["0%", "-80%", "-80%"]);
+  const xTransform = useTransform(smoothHorizontal, [0, 0.8, 1], ["0%", "-75%", "-75%"]);
   const imageParallax = useTransform(smoothHorizontal, [0, 1], ["-15%", "15%"]);
 
   return (
