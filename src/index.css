@@ -193,7 +193,7 @@ img { max-width: 100%; display: block; }
 .luxury-input:focus, .luxury-input:hover { border-bottom-color: var(--color-text); }
 .luxury-input::placeholder { color: rgba(0,0,0,0.4); letter-spacing: 2px; font-size: 0.8rem; }
 
-.horizontal-section-container { position: relative; height: 400vh; background: var(--color-secondary); z-index: 10; }
+.horizontal-section-container { position: relative; height: 500vh; background: var(--color-secondary); z-index: 10; }
 .horizontal-sticky { position: sticky; top: 0; left: 0; height: 100vh; width: 100vw; overflow: hidden; }
 .horizontal-track { display: flex; height: 100%; width: 400vw; will-change: transform; }
 .horizontal-panel { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; padding: 0 8vw; position: relative; }
