@@ -25,25 +25,52 @@ const AnimatedText = ({ text, className }) => {
   );
 };
 
-// Realistic animated Scissor Component
-const RealisticScissors = ({ progress }) => {
+// Hyper-realistic Awwwards-inspired Professional Shear SVG
+const PremiumScissors = ({ progress }) => {
   // Multiply progress by a large frequency so the blades open and close continuously
-  const angle = useTransform(progress, p => Math.abs(Math.sin(p * 30)) * 25);
+  const angle = useTransform(progress, p => Math.abs(Math.sin(p * 30)) * 12);
   const topBlade = useTransform(angle, a => -a);
   const bottomBlade = useTransform(angle, a => a);
 
   return (
-    <svg width="120" height="120" viewBox="0 0 100 100" style={{ overflow: 'visible' }}>
-      <circle cx="50" cy="50" r="4" fill="var(--color-bg)" stroke="var(--color-accent)" strokeWidth="2" zIndex="10"/>
-      {/* Top Blade */}
-      <motion.g style={{ originX: "50px", originY: "50px", rotate: topBlade }}>
-        <path d="M 15 35 C 30 35 45 45 50 50 L 95 48 C 98 48 98 50 95 50 L 50 50 Z" fill="var(--color-accent)" />
-        <circle cx="25" cy="35" r="8" fill="var(--color-bg)" stroke="var(--color-accent)" strokeWidth="3" />
+    <svg width="220" height="220" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0px 15px 25px rgba(0,0,0,0.4))' }}>
+      <defs>
+        <linearGradient id="premiumGold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F9D49B" />
+          <stop offset="50%" stopColor="#C19A6B" />
+          <stop offset="100%" stopColor="#8C6E46" />
+        </linearGradient>
+        <linearGradient id="titanium" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="50%" stopColor="#e4e4e7" />
+          <stop offset="100%" stopColor="#a1a1aa" />
+        </linearGradient>
+      </defs>
+
+      {/* Center Pivot */}
+      <circle cx="100" cy="100" r="4.5" fill="url(#titanium)" stroke="#27272a" strokeWidth="1.5" style={{ zIndex: 10 }} />
+      <circle cx="100" cy="100" r="1.5" fill="#18181b" />
+
+      {/* Top Blade & Handle (Pivot at 100, 100) */}
+      <motion.g style={{ originX: "100px", originY: "100px", rotate: topBlade }}>
+        {/* Blade */}
+        <path d="M 100 100 L 195 96 Q 198 96 195 98.5 L 100 102 Z" fill="url(#titanium)" />
+        {/* Handle shank */}
+        <path d="M 100 100 L 55 108" stroke="url(#premiumGold)" strokeWidth="7" strokeLinecap="round" />
+        {/* Finger Ring */}
+        <circle cx="40" cy="113" r="16" fill="transparent" stroke="url(#premiumGold)" strokeWidth="5.5" />
+        {/* Tang (finger rest) */}
+        <path d="M 24 113 L 10 110" stroke="url(#premiumGold)" strokeWidth="3.5" strokeLinecap="round" />
       </motion.g>
-      {/* Bottom Blade */}
-      <motion.g style={{ originX: "50px", originY: "50px", rotate: bottomBlade }}>
-        <path d="M 15 65 C 30 65 45 55 50 50 L 95 52 C 98 52 98 50 95 50 L 50 50 Z" fill="var(--color-accent)" />
-        <circle cx="25" cy="65" r="8" fill="var(--color-bg)" stroke="var(--color-accent)" strokeWidth="3" />
+
+      {/* Bottom Blade & Handle */}
+      <motion.g style={{ originX: "100px", originY: "100px", rotate: bottomBlade }}>
+        {/* Blade */}
+        <path d="M 100 100 L 195 104 Q 198 104 195 101.5 L 100 98 Z" fill="url(#titanium)" />
+        {/* Handle shank */}
+        <path d="M 100 100 L 55 92" stroke="url(#premiumGold)" strokeWidth="7" strokeLinecap="round" />
+        {/* Finger Ring */}
+        <circle cx="40" cy="87" r="16" fill="transparent" stroke="url(#premiumGold)" strokeWidth="5.5" />
       </motion.g>
     </svg>
   );
@@ -53,13 +80,13 @@ const RealisticScissors = ({ progress }) => {
 const RainBackground = ({ scrollProgress }) => {
   return (
     <div className="rain-container">
-      {[...Array(12)].map((_, i) => {
-        const speed = 1 + (i % 3);
-        const y = useTransform(scrollProgress, [0, 1], [`-${10 * speed}vh`, `${100 * speed}vh`]);
-        const left = `${(i * 8.5)}vw`;
+      {[...Array(15)].map((_, i) => {
+        const speed = 1 + (i % 4);
+        const y = useTransform(scrollProgress, [0, 1], [`-${15 * speed}vh`, `${120 * speed}vh`]);
+        const left = `${(i * 6.5)}vw`;
         return (
-          <motion.div key={i} style={{ position: 'absolute', top: 0, left, y, opacity: 0.15, color: 'var(--color-accent)', pointerEvents: 'none', zIndex: 1 }}>
-            <Droplet size={30 + (i % 20)} strokeWidth={1} />
+          <motion.div key={i} style={{ position: 'absolute', top: 0, left, y, opacity: 0.1, color: 'var(--color-accent)', pointerEvents: 'none', zIndex: 1 }}>
+            <Droplet size={25 + (i % 25)} strokeWidth={1} />
           </motion.div>
         );
       })}
@@ -86,7 +113,7 @@ function App() {
 
   const { scrollYProgress: pageScroll } = useScroll();
 
-  // Switch to light mode when reaching the bottom (Transformation Reveal)
+  // Transformation Reveal (Light Mode Shift)
   useMotionValueEvent(pageScroll, "change", (latest) => {
     if (latest > 0.85 && theme !== 'light') {
       setTheme('light');
@@ -102,22 +129,21 @@ function App() {
   const heroScale = useTransform(smoothHero, [0, 1], [1, 1.25]);
   const heroOpacity = useTransform(smoothHero, [0, 0.5], [1, 0]);
 
-  // Refined Scissor Cut Sequence
+  // Cinematic Scissor Cut Overlay Transition
   const cutRef = useRef(null);
   const { scrollYProgress: cutScroll } = useScroll({ target: cutRef, offset: ["start start", "end end"] });
   const smoothCut = useSpring(cutScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
   
   // Phase 1 (0 to 0.6): Scissor tracks horizontally and oscillates vertically for a "free cut"
   const scissorX = useTransform(smoothCut, [0, 0.6], ["-10vw", "110vw"]);
-  const scissorY = useTransform(smoothCut, p => Math.sin(p * Math.PI * 6) * 30); // Wavy Y movement
+  const scissorY = useTransform(smoothCut, p => Math.sin(p * Math.PI * 6) * 35); // Free and wiggly
   const cutLineWidth = useTransform(smoothCut, [0, 0.6], ["0%", "100%"]);
 
-  // Phase 2 (0.6 to 1): The canvas elegantly tears away diagonally
-  const tearProgress = useTransform(smoothCut, [0.6, 1], [0, 1]);
-  const topTearY = useTransform(tearProgress, [0, 1], ["0%", "-120%"]);
-  const topTearRotate = useTransform(tearProgress, [0, 1], [0, -10]);
-  const bottomTearY = useTransform(tearProgress, [0, 1], ["0%", "120%"]);
-  const bottomTearRotate = useTransform(tearProgress, [0, 1], [0, 10]);
+  // Phase 2 (0.6 to 1): The entire overlay gracefully dissolves into the next section.
+  // This avoids the "childish" split effect and looks like a professional webgl dissolve.
+  const overlayOpacity = useTransform(smoothCut, [0.6, 0.9], [1, 0]);
+  const overlayBlur = useTransform(smoothCut, [0.6, 0.9], ["blur(0px)", "blur(30px)"]);
+  const overlayScale = useTransform(smoothCut, [0.6, 0.9], [1, 1.1]);
 
   // Horizontal Scroll Section
   const horizontalRef = useRef(null);
@@ -171,33 +197,33 @@ function App() {
       <section className="scissor-cut-section" ref={cutRef}>
         <div className="scissor-sticky">
            
-           {/* The content waiting beneath the cut (Horizontal Scroll acts as the layer underneath visually) */}
-           {/* Actually, to make it seamless, the tear layers just overlay the horizontal section which naturally follows in flow. */}
-           {/* So the "cut" happens over a black overlay that tears open to reveal the actual horizontal section. */}
-           
-           <motion.div className="tear-canvas top" style={{ y: topTearY, rotateZ: topTearRotate, transformOrigin: 'top left' }}>
+           {/* The solid dark overlay that blurs and dissolves smoothly */}
+           <motion.div 
+             className="cinematic-overlay" 
+             style={{ 
+               opacity: overlayOpacity, 
+               filter: overlayBlur, 
+               scale: overlayScale 
+             }}
+           >
               <div className="canvas-texture"></div>
-           </motion.div>
-           
-           <motion.div className="tear-canvas bottom" style={{ y: bottomTearY, rotateZ: bottomTearRotate, transformOrigin: 'bottom right' }}>
-              <div className="canvas-texture"></div>
-           </motion.div>
 
-           {/* Wavy Cut Line */}
-           <motion.div className="wavy-cut-container" style={{ opacity: useTransform(smoothCut, [0.6, 0.65], [1, 0]) }}>
-             <svg width="100vw" height="100px" style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', overflow: 'visible' }}>
-               <motion.path 
-                 d="M 0 50 Q 50 0 100 50 T 200 50 T 300 50 T 400 50 T 500 50 T 600 50 T 700 50 T 800 50 T 900 50 T 1000 50 T 1100 50 T 1200 50 T 1300 50 T 1400 50 T 1500 50 T 1600 50 T 1700 50 T 1800 50 T 1900 50 T 2000 50" 
-                 fill="none" 
-                 stroke="var(--color-accent)" 
-                 strokeWidth="2"
-                 style={{ pathLength: cutLineWidth }}
-               />
-             </svg>
-             {/* Realistic Scissors tracking the path */}
-             <motion.div className="scissor-icon" style={{ x: scissorX, y: scissorY }}>
-               <RealisticScissors progress={smoothCut} />
-             </motion.div>
+              {/* Wavy Cut Line */}
+              <motion.div className="wavy-cut-container" style={{ opacity: useTransform(smoothCut, [0.6, 0.65], [1, 0]) }}>
+                <svg width="100vw" height="100px" style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', overflow: 'visible' }}>
+                  <motion.path 
+                    d="M 0 50 Q 50 0 100 50 T 200 50 T 300 50 T 400 50 T 500 50 T 600 50 T 700 50 T 800 50 T 900 50 T 1000 50 T 1100 50 T 1200 50 T 1300 50 T 1400 50 T 1500 50 T 1600 50 T 1700 50 T 1800 50 T 1900 50 T 2000 50" 
+                    fill="none" 
+                    stroke="var(--color-accent)" 
+                    strokeWidth="3"
+                    style={{ pathLength: cutLineWidth }}
+                  />
+                </svg>
+                {/* Masterfully animated scissors tracking the path */}
+                <motion.div className="scissor-icon" style={{ x: scissorX, y: scissorY }}>
+                  <PremiumScissors progress={smoothCut} />
+                </motion.div>
+              </motion.div>
            </motion.div>
 
         </div>
@@ -218,7 +244,7 @@ function App() {
                   initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.5, duration: 1 }}
                   className="editorial-text mt-8 hover-target"
                 >
-                  Welcome to the playground. Where scissors dance, colors pop, and your natural beauty is elevated to high art.
+                  Welcome to the playground. Where shears dance, colors pop, and your natural beauty is elevated to high art.
                 </motion.p>
               </div>
             </div>

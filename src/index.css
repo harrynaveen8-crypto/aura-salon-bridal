@@ -175,17 +175,14 @@ img { max-width: 100%; display: block; }
   justify-content: center;
 }
 
-.tear-canvas {
+.cinematic-overlay {
   position: absolute;
-  left: 0;
-  width: 100%;
-  height: 50vh; /* Covers top or bottom half */
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
   background-color: #09090b; /* Solid dark color matching initial bg */
   z-index: 20;
   pointer-events: auto; /* Block clicks while un-torn */
 }
-.tear-canvas.top { top: 0; }
-.tear-canvas.bottom { bottom: 0; }
 
 .wavy-cut-container {
   position: absolute;
@@ -198,8 +195,8 @@ img { max-width: 100%; display: block; }
   position: absolute;
   top: 50%;
   left: 0;
-  margin-top: -60px; /* offset half height */
-  margin-left: -60px;
+  margin-top: -110px; /* offset half height of the new 220px svg */
+  margin-left: -110px;
 }
 
 /* Horizontal Scroll System */
