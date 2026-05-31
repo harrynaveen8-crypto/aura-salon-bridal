@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import AssemblingSVG from '../components/AssemblingSVG';
 
 const WordReveal = ({ text, className, delay = 0 }) => {
   const words = text.split(" ");
@@ -52,7 +53,6 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
     else setTheme('dark');
   });
 
-  // Replaced childish clip-path with a mature, severe parallax hero
   const heroRef = useRef(null);
   const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const smoothHero = useSpring(heroScroll, { stiffness: 100, damping: 30 });
@@ -87,6 +87,16 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
              </div>
           </div>
         </motion.div>
+      </section>
+
+      {/* ZETTA-JOULE STYLE ASSEMBLY ANIMATION */}
+      <section className="bg-base py-16 relative z-10 border-bottom overflow-hidden">
+        <div className="container text-center mb-8">
+           <span className="tiny-label">CONSTRUCTING THE SILHOUETTE</span>
+        </div>
+        <div style={{ height: '80vh', width: '100vw' }}>
+           <AssemblingSVG />
+        </div>
       </section>
 
       {/* MASSIVE PHILOSOPHICAL SCROLL SECTION */}

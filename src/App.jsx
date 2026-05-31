@@ -11,35 +11,51 @@ import Journal from './pages/Journal';
 import AuraBackground from './components/AuraBackground';
 import SpinningBadge from './components/SpinningBadge';
 
+// INTERIORGLOBE.CO STYLE LOADING PERCENTAGE ANIMATION
 const Preloader = ({ onComplete }) => {
+  const [progress, setProgress] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    let current = 0;
+    const interval = setInterval(() => {
+      // Non-linear counting speed for more realism
+      current += Math.floor(Math.random() * 12) + 2;
+      if (current >= 100) {
+        current = 100;
+        setIsComplete(true);
+        clearInterval(interval);
+        setTimeout(onComplete, 1200); // Hold at 100% briefly before sliding up
+      }
+      setProgress(current);
+    }, 70);
+    return () => clearInterval(interval);
+  }, [onComplete]);
+
   return (
     <motion.div 
       className="preloader-overlay"
-      initial={{ opacity: 1 }}
-      animate={{ opacity: 0 }}
-      transition={{ duration: 1.5, delay: 2.5, ease: [0.76, 0, 0.24, 1] }}
-      onAnimationComplete={onComplete}
+      initial={{ y: "0%" }}
+      animate={{ y: isComplete ? "-100%" : "0%" }}
+      transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1], delay: 0.5 }}
+      style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '4vw' }}
     >
-      <motion.svg width="120" height="120" viewBox="0 0 100 100">
-        <motion.path 
-          d="M20,80 L50,20 L80,80" 
-          stroke="var(--color-accent)" 
-          strokeWidth="1.5" 
-          fill="none"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 2, ease: "easeInOut" }}
-        />
-        <motion.path 
-          d="M35,60 L65,60" 
-          stroke="var(--color-accent)" 
-          strokeWidth="1.5" 
-          fill="none"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.5, delay: 0.5, ease: "easeInOut" }}
-        />
-      </motion.svg>
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-end', overflow: 'hidden' }}>
+        <motion.span 
+          className="tiny-label" 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 1 }}
+        >
+          {isComplete ? "AURA INITIALIZED." : "ASSEMBLING FRAMEWORK..."}
+        </motion.span>
+        <motion.h1 
+          className="text-massive kinetic-text" 
+          style={{ fontSize: '18vw', lineHeight: '0.75', margin: 0, color: 'var(--color-accent)' }}
+        >
+          {progress.toString().padStart(3, '0')}
+        </motion.h1>
+      </div>
     </motion.div>
   )
 }
@@ -99,22 +115,22 @@ function App() {
   return (
     <BrowserRouter>
       <div className={`app-wrapper theme-${theme}`}>
-        <Preloader onComplete={() => setPreloaderComplete(true)} />
+        <AnimatePresence>
+          {!preloaderComplete && <Preloader onComplete={() => setPreloaderComplete(true)} />}
+        </AnimatePresence>
         <AuraBackground />
         <SpinningBadge />
         <LiquidCursor />
         <div className="noise"></div>
         <Navigation show={preloaderComplete} />
         
-        {preloaderComplete && (
-          <Routes>
-            <Route path="/" element={<Home setTheme={setTheme} revealImage={revealImage} setRevealImage={setRevealImage} />} />
-            <Route path="/archive" element={<Archive setTheme={setTheme} />} />
-            <Route path="/journal" element={<Journal setTheme={setTheme} />} />
-            <Route path="/services" element={<Services setTheme={setTheme} />} />
-            <Route path="/booking" element={<Booking setTheme={setTheme} />} />
-          </Routes>
-        )}
+        <Routes>
+          <Route path="/" element={<Home setTheme={setTheme} revealImage={revealImage} setRevealImage={setRevealImage} />} />
+          <Route path="/archive" element={<Archive setTheme={setTheme} />} />
+          <Route path="/journal" element={<Journal setTheme={setTheme} />} />
+          <Route path="/services" element={<Services setTheme={setTheme} />} />
+          <Route path="/booking" element={<Booking setTheme={setTheme} />} />
+        </Routes>
       </div>
     </BrowserRouter>
   );
