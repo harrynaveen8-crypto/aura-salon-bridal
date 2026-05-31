@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import Lenis from 'lenis';
 import CustomCursor from './CustomCursor';
-import { Scissors, Droplet, Wind, Sparkles } from 'lucide-react';
+import { Scissors } from 'lucide-react';
 
 const AnimatedText = ({ text, className }) => {
   const words = text.split(" ");
@@ -25,29 +25,10 @@ const AnimatedText = ({ text, className }) => {
   );
 };
 
-// Floating element component for extreme playfulness
-const FloatingIcon = ({ children, initialX, initialY, scrollProgress, yRange, rotationRange }) => {
-  const y = useTransform(scrollProgress, [0, 1], yRange);
-  const rotate = useTransform(scrollProgress, [0, 1], rotationRange);
-  
-  return (
-    <motion.div 
-      style={{ 
-        position: 'absolute', top: initialY, left: initialX, 
-        y, rotate, 
-        color: 'var(--color-accent)', opacity: 0.3, 
-        pointerEvents: 'none', zIndex: 1 
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
 function App() {
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.5, // Even smoother/longer inertia
+      duration: 1.5,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
       direction: 'vertical',
       gestureDirection: 'vertical',
@@ -62,9 +43,6 @@ function App() {
     return () => lenis.destroy();
   }, []);
 
-  // Global Scroll for floating objects
-  const { scrollYProgress: pageScroll } = useScroll();
-
   // Hero Scroll Parallax
   const heroRef = useRef(null);
   const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
@@ -72,32 +50,35 @@ function App() {
   const heroScale = useTransform(smoothHero, [0, 1], [1, 1.25]);
   const heroOpacity = useTransform(smoothHero, [0, 0.5], [1, 0]);
 
+  // Scissor Cut Section Setup
+  const cutRef = useRef(null);
+  const { scrollYProgress: cutScroll } = useScroll({ target: cutRef, offset: ["start start", "end end"] });
+  const smoothCut = useSpring(cutScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  
+  // Phase 1 (0 to 0.5): Scissor moves left to right, cutting the line
+  const scissorX = useTransform(smoothCut, [0, 0.5], ["-10vw", "110vw"]);
+  const cutLineWidth = useTransform(smoothCut, [0, 0.5], ["0%", "100%"]);
+  // Rotate scissors back and forth to simulate cutting
+  const scissorRotate = useTransform(smoothCut, [0, 0.1, 0.2, 0.3, 0.4, 0.5], [-90, -130, -90, -130, -90, -130]);
+
+  // Phase 2 (0.5 to 1): The two panels slide apart vertically
+  const topPanelY = useTransform(smoothCut, [0.5, 1], ["0%", "-100%"]);
+  const bottomPanelY = useTransform(smoothCut, [0.5, 1], ["0%", "100%"]);
+
   // Horizontal Scroll Section Setup
   const horizontalRef = useRef(null);
   const { scrollYProgress: horizontalScroll } = useScroll({ target: horizontalRef });
-  const smoothHorizontal = useSpring(horizontalScroll, { stiffness: 100, damping: 30 });
   
   // Map vertical scroll (0 to 1) to horizontal translation (0% to -75% for 4 panels)
+  // We use useSpring to ensure it feels buttery and doesn't abruptly stop
+  const smoothHorizontal = useSpring(horizontalScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
   const xTransform = useTransform(smoothHorizontal, [0, 1], ["0%", "-75%"]);
 
   return (
-    <div style={{ background: 'var(--color-bg)', overflow: 'hidden' }}>
+    // Crucial fix: removed global overflow:hidden which breaks position: sticky
+    <div style={{ background: 'var(--color-bg)' }}>
       <CustomCursor />
       <div className="noise"></div>
-      
-      {/* Floating Playful Salon Elements mapped to page scroll */}
-      <FloatingIcon scrollProgress={pageScroll} initialX="10vw" initialY="20vh" yRange={["0vh", "150vh"]} rotationRange={[0, 360]}>
-        <Scissors size={120} strokeWidth={0.5} />
-      </FloatingIcon>
-      <FloatingIcon scrollProgress={pageScroll} initialX="85vw" initialY="40vh" yRange={["0vh", "200vh"]} rotationRange={[45, -180]}>
-        <Droplet size={100} strokeWidth={0.5} />
-      </FloatingIcon>
-      <FloatingIcon scrollProgress={pageScroll} initialX="20vw" initialY="120vh" yRange={["0vh", "-100vh"]} rotationRange={[-45, 180]}>
-        <Wind size={150} strokeWidth={0.5} />
-      </FloatingIcon>
-      <FloatingIcon scrollProgress={pageScroll} initialX="80vw" initialY="200vh" yRange={["0vh", "-150vh"]} rotationRange={[0, -270]}>
-        <Sparkles size={120} strokeWidth={0.5} />
-      </FloatingIcon>
 
       <nav className="navbar hover-target">
         <div className="nav-logo">AURA.</div>
@@ -106,6 +87,7 @@ function App() {
         </div>
       </nav>
 
+      {/* 1. Hero Section */}
       <section className="hero" ref={heroRef}>
         <motion.div className="hero-img-wrapper" style={{ scale: heroScale, opacity: heroOpacity }}>
           <img src="/hero.png" alt="Aura Beauty Salon" className="hero-img" />
@@ -133,7 +115,39 @@ function App() {
         </div>
       </section>
 
-      {/* Horizontal Scroll Masterpiece */}
+      {/* 2. Scissor Cut Creative Transition */}
+      <section className="scissor-cut-section" ref={cutRef}>
+        <div className="scissor-sticky">
+           
+           {/* Content revealed behind the cut */}
+           <div className="revealed-content">
+              <h2 className="text-massive text-center text-editorial" style={{ color: 'var(--color-accent)' }}>
+                THE REVEAL
+              </h2>
+           </div>
+
+           {/* Top Half Canvas */}
+           <motion.div className="cut-panel top" style={{ y: topPanelY }}>
+             <h2 className="cut-text" style={{ top: 'auto', bottom: 0, transform: 'translateY(50%)' }}>SCROLL TO CUT</h2>
+           </motion.div>
+           
+           {/* Bottom Half Canvas */}
+           <motion.div className="cut-panel bottom" style={{ y: bottomPanelY }}>
+             <h2 className="cut-text" style={{ top: 0, transform: 'translateY(-50%)' }}>SCROLL TO CUT</h2>
+           </motion.div>
+
+           {/* The Cut Line */}
+           <motion.div className="cut-line" style={{ width: cutLineWidth }} />
+           
+           {/* The Scissors */}
+           <motion.div className="scissor-icon" style={{ x: scissorX, rotate: scissorRotate }}>
+             <Scissors size={140} color="var(--color-accent)" strokeWidth={1} />
+           </motion.div>
+
+        </div>
+      </section>
+
+      {/* 3. Horizontal Scroll Masterpiece (Fixed Sticky Sync) */}
       <section ref={horizontalRef} className="horizontal-section-container">
         <div className="horizontal-sticky">
           <motion.div className="horizontal-track" style={{ x: xTransform }}>

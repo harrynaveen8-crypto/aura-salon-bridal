@@ -32,6 +32,11 @@ body {
   color: var(--color-text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  /* CRITICAL FIX: DO NOT USE overflow-x: hidden here, it breaks position: sticky! */
+}
+
+/* Hide horizontal scrollbar safely at the document root level */
+html {
   overflow-x: hidden;
 }
 
@@ -120,6 +125,84 @@ img { max-width: 100%; display: block; }
 .hero-img-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
 .hero-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
 .hero-content-container { position: relative; height: 100%; display: flex; align-items: flex-end; padding-bottom: 10vh; z-index: 10; }
+
+/* Scissor Cut Section */
+.scissor-cut-section {
+  position: relative;
+  height: 250vh; /* gives us plenty of scroll distance for the cut animation */
+  background: var(--color-bg);
+  z-index: 30;
+}
+
+.scissor-sticky {
+  position: sticky;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.revealed-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-secondary); /* dark contrast reveal */
+  z-index: 1;
+}
+
+.cut-panel {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50vh;
+  background-color: var(--color-bg);
+  z-index: 2;
+  overflow: hidden;
+}
+
+.cut-panel.top { top: 0; }
+.cut-panel.bottom { bottom: 0; }
+
+.cut-text {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: clamp(5rem, 15vw, 15rem);
+  font-weight: 700;
+  color: #1f1f22; /* subtle dark text on dark background */
+  white-space: nowrap;
+}
+
+.cut-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 2px;
+  background-color: var(--color-accent);
+  box-shadow: 0 0 15px var(--color-accent);
+  z-index: 3;
+  transform: translateY(-50%);
+}
+
+.scissor-icon {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 4;
+  margin-top: -70px; /* offset half the icon size */
+  margin-left: -70px;
+}
 
 /* Horizontal Scroll System */
 .horizontal-section-container {
