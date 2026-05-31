@@ -1,4 +1,5 @@
 :root {
+  /* Default Dark Mode Theme */
   --color-bg: #09090b; 
   --color-text: #e4e4e7;
   --color-accent: #B89C72;
@@ -10,13 +11,27 @@
   --transition: all 0.6s cubic-bezier(0.76, 0, 0.24, 1);
 }
 
+/* Light Mode Transformation Theme */
+.theme-light {
+  --color-bg: #f4f4f5; 
+  --color-text: #09090b;
+  --color-accent: #9A7B4F; /* Deeper gold for contrast */
+  --color-secondary: #e4e4e7;
+}
+
+.app-wrapper {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 1.5s cubic-bezier(0.76, 0, 0.24, 1), color 1.5s cubic-bezier(0.76, 0, 0.24, 1);
+  min-height: 100vh;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* Lenis required styles */
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
@@ -28,29 +43,20 @@ body, a, button { cursor: none !important; }
 
 body {
   font-family: var(--font-body);
-  background-color: var(--color-bg);
-  color: var(--color-text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  /* CRITICAL FIX: DO NOT USE overflow-x: hidden here, it breaks position: sticky! */
 }
 
-/* Hide horizontal scrollbar safely at the document root level */
-html {
-  overflow-x: hidden;
-}
+html { overflow-x: hidden; }
 
-/* Custom Cursor */
 .custom-cursor {
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   border-radius: 50%;
   pointer-events: none;
   z-index: 99999;
 }
 
-/* Noise overlay */
 .noise {
   position: fixed;
   top: 0; left: 0;
@@ -61,6 +67,15 @@ html {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
+/* Rain Background */
+.rain-container {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+
 h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); font-weight: 300; line-height: 1; }
 a { text-decoration: none; color: inherit; }
 img { max-width: 100%; display: block; }
@@ -69,7 +84,15 @@ img { max-width: 100%; display: block; }
 .mt-8 { margin-top: 2rem; }
 .text-center { text-align: center; }
 
-/* Typography */
+/* Liquid Hover Image CSS implementation */
+.liquid-image {
+  transition: filter 1s cubic-bezier(0.76, 0, 0.24, 1), transform 1.5s cubic-bezier(0.76, 0, 0.24, 1);
+}
+.panel-img-wrapper:hover .liquid-image, .hero-img-wrapper:hover .liquid-image {
+  filter: saturate(1.2) contrast(1.1) brightness(1.1);
+  transform: scale(1.1) rotate(1deg);
+}
+
 .text-massive {
   font-size: clamp(4rem, 15vw, 12rem);
   text-transform: uppercase;
@@ -91,14 +114,22 @@ img { max-width: 100%; display: block; }
   color: var(--color-accent);
 }
 
-/* Buttons */
+/* Kinetic Text pseudo-repel effect */
+.kinetic-text {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.kinetic-text:hover {
+  transform: scale(1.02) translateY(-10px);
+}
+
 .btn-magnetic {
   display: inline-flex;
   align-items: center; justify-content: center;
   padding: 1.5rem 3.5rem;
   font-family: var(--font-body); font-weight: 600;
   text-transform: uppercase; letter-spacing: 2px; font-size: 0.85rem;
-  border: 1px solid rgba(228, 228, 231, 0.2); border-radius: 100px;
+  border: 1px solid rgba(150, 150, 150, 0.2); border-radius: 100px;
   background: transparent; color: var(--color-text);
   position: relative; overflow: hidden;
   transition: border-color 0.4s ease;
@@ -113,25 +144,23 @@ img { max-width: 100%; display: block; }
 }
 .btn-magnetic:hover::before { top: 0; border-radius: 0; }
 
-/* Navbar */
 .navbar {
   position: fixed; top: 0; left: 0; width: 100%;
   padding: 2.5rem 5vw; display: flex; justify-content: space-between; align-items: center;
   z-index: 100; mix-blend-mode: difference; color: #fff;
 }
 
-/* Hero Section */
 .hero { height: 100vh; position: relative; overflow: hidden; }
 .hero-img-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
 .hero-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
 .hero-content-container { position: relative; height: 100%; display: flex; align-items: flex-end; padding-bottom: 10vh; z-index: 10; }
 
-/* Scissor Cut Section */
+/* Refined Scissor Cut Overlay Transition */
 .scissor-cut-section {
   position: relative;
-  height: 250vh; /* gives us plenty of scroll distance for the cut animation */
-  background: var(--color-bg);
-  z-index: 30;
+  height: 250vh; 
+  z-index: 30; /* Overlays horizontal section initially */
+  pointer-events: none; /* Let clicks pass through once torn */
 }
 
 .scissor-sticky {
@@ -146,148 +175,86 @@ img { max-width: 100%; display: block; }
   justify-content: center;
 }
 
-.revealed-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-secondary); /* dark contrast reveal */
-  z-index: 1;
-}
-
-.cut-panel {
+.tear-canvas {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 50vh;
-  background-color: var(--color-bg);
-  z-index: 2;
-  overflow: hidden;
+  height: 50vh; /* Covers top or bottom half */
+  background-color: #09090b; /* Solid dark color matching initial bg */
+  z-index: 20;
+  pointer-events: auto; /* Block clicks while un-torn */
 }
+.tear-canvas.top { top: 0; }
+.tear-canvas.bottom { bottom: 0; }
 
-.cut-panel.top { top: 0; }
-.cut-panel.bottom { bottom: 0; }
-
-.cut-text {
+.wavy-cut-container {
   position: absolute;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  font-family: var(--font-body);
-  font-size: clamp(5rem, 15vw, 15rem);
-  font-weight: 700;
-  color: #1f1f22; /* subtle dark text on dark background */
-  white-space: nowrap;
-}
-
-.cut-line {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  height: 2px;
-  background-color: var(--color-accent);
-  box-shadow: 0 0 15px var(--color-accent);
-  z-index: 3;
-  transform: translateY(-50%);
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 25;
 }
 
 .scissor-icon {
   position: absolute;
   top: 50%;
   left: 0;
-  z-index: 4;
-  margin-top: -70px; /* offset half the icon size */
-  margin-left: -70px;
+  margin-top: -60px; /* offset half height */
+  margin-left: -60px;
 }
 
 /* Horizontal Scroll System */
 .horizontal-section-container {
   position: relative;
-  height: 400vh; /* 4 panels -> 400vh */
-  background: var(--color-bg);
-  z-index: 20;
+  height: 400vh; 
+  background: transparent; /* Changed to let light mode bleed through if needed */
+  z-index: 10;
 }
 
 .horizontal-sticky {
   position: sticky;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 100vw;
+  top: 0; left: 0;
+  height: 100vh; width: 100vw;
   overflow: hidden;
 }
 
 .horizontal-track {
   display: flex;
-  height: 100%;
-  width: 400vw; /* 4 panels */
+  height: 100%; width: 400vw; 
   will-change: transform;
 }
 
 .horizontal-panel {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 10vw;
-  position: relative;
+  width: 100vw; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 10vw; position: relative;
 }
 
 .panel-content { max-width: 800px; }
 
 .panel-split {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 8vw;
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; gap: 8vw;
 }
 
 .panel-split.reverse { flex-direction: row-reverse; }
 
 .panel-text { flex: 1; }
 .panel-img-wrapper {
-  flex: 1;
-  height: 65vh;
-  overflow: hidden;
-  position: relative;
+  flex: 1; height: 65vh; overflow: hidden; position: relative;
 }
 
 .panel-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 1.5s cubic-bezier(0.76, 0, 0.24, 1);
-}
-
-.panel-img-wrapper:hover .panel-img {
-  transform: scale(1.1);
+  width: 100%; height: 100%; object-fit: cover;
 }
 
 .section-label {
-  font-family: var(--font-body);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-size: 0.75rem;
-  margin-bottom: 2rem;
-  display: block;
-  color: var(--color-accent);
+  font-family: var(--font-body); text-transform: uppercase; letter-spacing: 2px;
+  font-size: 0.75rem; margin-bottom: 2rem; display: block; color: var(--color-accent);
 }
 
-.editorial-text {
-  font-size: 1.15rem;
-  line-height: 1.8;
-  color: #a1a1aa;
-  max-width: 450px;
-}
+.editorial-text { font-size: 1.15rem; line-height: 1.8; max-width: 450px; opacity: 0.8; }
 
-/* Footer */
-.footer-giant { padding: 20vh 0 10vh; background: var(--color-secondary); }
+.footer-giant { padding: 20vh 0 10vh; background: transparent; position: relative; z-index: 10; }
 
 @media (max-width: 900px) {
   body, a, button { cursor: auto !important; }
