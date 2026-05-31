@@ -1,21 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const Flashbulb = ({ scrollProgress }) => {
   const [flashed, setFlashed] = useState(false);
-  const flashOpacity = useSpring(0, { stiffness: 400, damping: 20 });
+  const flashOpacity = useSpring(0, { stiffness: 200, damping: 20 });
   
   useMotionValueEvent(scrollProgress, "change", (latest) => {
-    if (latest > 0.95 && !flashed) {
-      setFlashed(true); flashOpacity.set(1); setTimeout(() => flashOpacity.set(0), 100); 
-    } else if (latest < 0.9) { setFlashed(false); }
+    // Shocking Flashbulb effect: Triggers near bottom, holds pure white for 400ms, then fades.
+    if (latest >= 0.98 && !flashed) {
+      setFlashed(true); 
+      flashOpacity.set(1); 
+      setTimeout(() => flashOpacity.set(0), 400); 
+    } else if (latest < 0.95) { 
+      setFlashed(false); 
+    }
   });
 
   return <motion.div className="flashbulb-overlay" style={{ opacity: flashOpacity }} />;
 };
 
-const Home = ({ setTheme, setRevealImage }) => {
+const Home = ({ setTheme, revealImage, setRevealImage }) => {
   useEffect(() => {
     setTheme('dark');
     window.scrollTo(0, 0);
@@ -37,7 +42,8 @@ const Home = ({ setTheme, setRevealImage }) => {
   const horizontalRef = useRef(null);
   const { scrollYProgress: horizontalScroll } = useScroll({ target: horizontalRef });
   const smoothHorizontal = useSpring(horizontalScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
-  const xTransform = useTransform(smoothHorizontal, [0, 1], ["0%", "-75%"]);
+  // Adjusted horizontal tracking to give more tension at the end before dropping to the footer
+  const xTransform = useTransform(smoothHorizontal, [0, 1], ["0%", "-80%"]);
   const imageParallax = useTransform(smoothHorizontal, [0, 1], ["-15%", "15%"]);
 
   return (
@@ -68,7 +74,24 @@ const Home = ({ setTheme, setRevealImage }) => {
              <div className="vertical-ticker">
                <div className="vertical-ticker-content">AESTHETIC / CRAFT / VISION / AESTHETIC / CRAFT / VISION / AESTHETIC / CRAFT / VISION</div>
              </div>
+             {/* The new fixed editorial image frame that doesn't obscure text */}
+             <div className="fixed-editorial-frame">
+                <AnimatePresence>
+                  {revealImage && (
+                    <motion.div 
+                      className="editorial-frame-inner"
+                      initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
+                      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                      exit={{ opacity: 0, scale: 0.95, filter: 'blur(5px)' }}
+                      transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
+                    >
+                      <img src={revealImage} alt="Reference" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+             </div>
            </div>
+           
            <div className="manifesto-right">
              <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1 }} className="text-large">
                We do not follow trends. <br/><span className="text-editorial">We engineer them.</span>
@@ -93,15 +116,35 @@ const Home = ({ setTheme, setRevealImage }) => {
             <div className="marquee-content">SCULPT • COLOR • STYLE • BRIDAL • EXTENSIONS • SCULPT • COLOR • STYLE • BRIDAL • EXTENSIONS •</div>
          </div>
          <div className="container services-grid mt-8">
-            <div className="service-item"><span className="tiny-label mb-8">01 / FOUNDATION</span><h3>The Cut</h3><p className="editorial-text-small">Architectural precision meets effortless flow.</p></div>
-            <div className="service-item"><span className="tiny-label mb-8">02 / CHEMISTRY</span><h3>The Color</h3><p className="editorial-text-small">Bespoke formulations painted by masters.</p></div>
-            <div className="service-item"><span className="tiny-label mb-8">03 / EVENT</span><h3>The Bridal</h3><p className="editorial-text-small">High-fashion techniques for classic elegance.</p></div>
-            <div className="service-item"><span className="tiny-label mb-8">04 / RESTORE</span><h3>The Care</h3><p className="editorial-text-small">Luxury molecular repair treatments.</p></div>
+            <div className="service-item">
+              <div className="service-watermark">01</div>
+              <div className="service-header-flex"><span className="tiny-label">FOUNDATION</span><span className="service-tag">[ 120 MIN ]</span></div>
+              <h3 className="service-title">The Cut <span className="service-arrow">→</span></h3>
+              <p className="editorial-text-small">Architectural precision meets effortless flow.</p>
+            </div>
+            <div className="service-item">
+              <div className="service-watermark">02</div>
+              <div className="service-header-flex"><span className="tiny-label">CHEMISTRY</span><span className="service-tag">[ 180 MIN ]</span></div>
+              <h3 className="service-title">The Color <span className="service-arrow">→</span></h3>
+              <p className="editorial-text-small">Bespoke formulations painted by masters.</p>
+            </div>
+            <div className="service-item">
+              <div className="service-watermark">03</div>
+              <div className="service-header-flex"><span className="tiny-label">EVENT</span><span className="service-tag">[ BESPOKE ]</span></div>
+              <h3 className="service-title">The Bridal <span className="service-arrow">→</span></h3>
+              <p className="editorial-text-small">High-fashion techniques for classic elegance.</p>
+            </div>
+            <div className="service-item">
+              <div className="service-watermark">04</div>
+              <div className="service-header-flex"><span className="tiny-label">RESTORE</span><span className="service-tag">[ 60 MIN ]</span></div>
+              <h3 className="service-title">The Care <span className="service-arrow">→</span></h3>
+              <p className="editorial-text-small">Luxury molecular repair treatments.</p>
+            </div>
          </div>
-         <div className="container mt-8 text-center" style={{ paddingBottom: '10vh' }}>
+         <div className="container mt-16 mb-16 text-center" style={{ paddingBottom: '10vh' }}>
             <Link to="/services">
               <button className="btn-magnetic hover-target" style={{ borderColor: 'rgba(255,255,255,0.4)' }}>
-                <span>View Full Menu</span>
+                <span>Explore Full Details</span>
               </button>
             </Link>
          </div>
@@ -151,10 +194,16 @@ const Home = ({ setTheme, setRevealImage }) => {
                </div>
             </div>
 
+            {/* The Finale Tension Panel */}
             <div className="horizontal-panel" style={{ justifyContent: 'center' }}>
-               <h2 className="text-massive kinetic-text" style={{ WebkitTextStroke: '2px var(--color-text)', color: 'transparent', textAlign: 'center' }}>
-                 CREATE <br/> MAGIC
-               </h2>
+               <div className="text-center">
+                 <h2 className="text-massive kinetic-text" style={{ WebkitTextStroke: '2px var(--color-text)', color: 'transparent' }}>
+                   THE FINALE
+                 </h2>
+                 <p className="editorial-text mt-8 mx-auto" style={{ textAlign: 'center', opacity: 0.5 }}>
+                   Scroll down to experience the climax.
+                 </p>
+               </div>
             </div>
           </motion.div>
         </div>
