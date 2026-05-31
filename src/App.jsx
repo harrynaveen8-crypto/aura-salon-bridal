@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, useVelocity } from 'framer-motion';
 import Lenis from 'lenis';
 
 // -------------------------------------------------------------
-// AWWWARDS-GRADE UI COMPONENTS & TOYS
+// AWWWARDS-GRADE UI COMPONENTS
 // -------------------------------------------------------------
 
 const AnimatedText = ({ text, className, delayOffset = 0 }) => {
@@ -27,7 +27,6 @@ const AnimatedText = ({ text, className, delayOffset = 0 }) => {
   );
 };
 
-// Refactored LiquidCursor: Zero-latency hardware-accelerated tracking via useSpring
 const LiquidCursor = () => {
   const cursorX = useSpring(-100, { stiffness: 800, damping: 35 });
   const cursorY = useSpring(-100, { stiffness: 800, damping: 35 });
@@ -41,115 +40,79 @@ const LiquidCursor = () => {
     return () => window.removeEventListener("mousemove", onMouseMove);
   }, [cursorX, cursorY]);
 
+  return <motion.div className="liquid-cursor" style={{ x: cursorX, y: cursorY }} />;
+};
+
+// Act 2: Golden Hair Strand Spine (Physics-enabled center line)
+const GoldenSpine = () => {
+  const { scrollY } = useScroll();
+  const scrollVelocity = useVelocity(scrollY);
+  const smoothVelocity = useSpring(scrollVelocity, { damping: 50, stiffness: 400 });
+  // Map high scroll velocity to bending the spine
+  const bend = useTransform(smoothVelocity, [-2000, 2000], [-30, 30]);
+  
+  // Create an SVG path dynamically: A bezier curve that bends in the middle based on velocity
+  const pathD = useTransform(bend, b => `M 50 0 Q ${50 + b} 50 50 100`);
+
   return (
-    <motion.div 
-      className="liquid-cursor" 
-      style={{ x: cursorX, y: cursorY }} 
-    />
+    <div className="golden-spine-container">
+      <svg preserveAspectRatio="none" viewBox="0 0 100 100" className="golden-spine-svg">
+         <motion.path 
+           d={pathD} 
+           stroke="var(--color-accent)" 
+           strokeWidth="0.2" 
+           fill="none" 
+         />
+      </svg>
+    </div>
   );
 };
 
-const PlayfulTool = ({ children, initialX, initialY, delay = 0, size = "250px" }) => {
+// Act 3: Dye Mixing Orbs
+const DyeOrb = ({ color, setAccentColor, label }) => {
   return (
     <motion.div
       drag
-      dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
+      dragConstraints={{ left: -150, right: 150, top: -150, bottom: 150 }}
       dragElastic={0.4}
-      whileDrag={{ scale: 1.1, cursor: 'grabbing', rotate: 10, opacity: 0.9 }}
-      whileHover={{ scale: 1.05 }}
-      animate={{ y: [0, -30, 0], rotate: [0, 5, -5, 0] }}
-      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: delay }}
-      className="playful-tool"
-      style={{
-        position: 'absolute', top: initialY, left: initialX,
-        cursor: 'grab', zIndex: 5, color: 'var(--color-accent)', opacity: 0.15,
-        width: size, height: size
-      }}
+      whileDrag={{ scale: 1.3, cursor: 'grabbing', zIndex: 50 }}
+      whileHover={{ scale: 1.1 }}
+      onDragStart={() => setAccentColor(color)}
+      animate={{ y: [0, -20, 0], x: [0, 10, -10, 0] }}
+      transition={{ duration: 5 + Math.random() * 3, repeat: Infinity, ease: "easeInOut" }}
+      className="dye-orb hover-target"
+      style={{ backgroundColor: color }}
     >
-      {children}
+      <span className="dye-label">{label}</span>
     </motion.div>
   );
 };
 
-// Premium SVGs
-const MirrorSVG = () => (
-  <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="3">
-    <circle cx="50" cy="35" r="25" />
-    <path d="M 45 60 L 45 85 C 45 90 55 90 55 85 L 55 60" fill="currentColor" stroke="none" />
-  </svg>
-);
-
-const SpraySVG = () => (
-  <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="3">
-    <rect x="35" y="45" width="30" height="45" rx="8" />
-    <rect x="42" y="30" width="16" height="15" fill="currentColor" stroke="none" />
-    <path d="M 42 30 L 25 20 L 65 20 C 70 20 70 30 65 30 Z" fill="currentColor" stroke="none" />
-  </svg>
-);
-
-// -------------------------------------------------------------
-// SECTIONS
-// -------------------------------------------------------------
-
-const ManifestoSection = () => {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 80%", "end 50%"] });
-  const text = "We believe hair is a canvas. Every cut is an architectural decision. Every color is an emotion. We don't follow trends, we sculpt them. Welcome to the avant-garde of beauty.";
-  const words = text.split(" ");
+// Act 5: The Editorial Flashbulb
+const Flashbulb = ({ scrollProgress }) => {
+  const [flashed, setFlashed] = useState(false);
+  const flashOpacity = useSpring(0, { stiffness: 400, damping: 20 });
   
-  return (
-    <section ref={ref} className="manifesto-section container hover-target">
-       <h2 className="text-large text-center kinetic-text" style={{ lineHeight: 1.4, display: 'block' }}>
-         {words.map((word, i) => {
-           const start = i / words.length;
-           const end = start + (1 / words.length);
-           const opacity = useTransform(scrollYProgress, [start, end], [0.1, 1]);
-           const filter = useTransform(scrollYProgress, [start, end], ["blur(10px)", "blur(0px)"]);
-           return <motion.span key={i} style={{ opacity, filter, display: 'inline-block', marginRight: '0.2em' }}>{word}</motion.span>
-         })}
-       </h2>
-    </section>
-  );
+  useMotionValueEvent(scrollProgress, "change", (latest) => {
+    if (latest > 0.95 && !flashed) {
+      setFlashed(true);
+      flashOpacity.set(1); // Blinding flash
+      setTimeout(() => flashOpacity.set(0), 100); // Fade rapidly
+    } else if (latest < 0.9) {
+      setFlashed(false);
+    }
+  });
+
+  return <motion.div className="flashbulb-overlay" style={{ opacity: flashOpacity }} />;
 };
 
-const ServicesSection = () => {
-  return (
-    <section className="services-section hover-target">
-       <div className="marquee-container">
-          <div className="marquee-content">
-             SCULPT • COLOR • STYLE • BRIDAL • EXTENSIONS • SCULPT • COLOR • STYLE • BRIDAL • EXTENSIONS •
-          </div>
-       </div>
-       <div className="container services-grid mt-8">
-          <div className="service-item">
-            <span className="service-number">01</span>
-            <h3>The Cut</h3>
-            <p className="editorial-text">Architectural precision meets effortless flow. We engineer cuts that grow beautifully over time.</p>
-          </div>
-          <div className="service-item">
-            <span className="service-number">02</span>
-            <h3>The Color</h3>
-            <p className="editorial-text">Bespoke formulations. From dimensional balayage to vivid color blocking, painted by masters.</p>
-          </div>
-          <div className="service-item">
-            <span className="service-number">03</span>
-            <h3>The Bridal</h3>
-            <p className="editorial-text">Editorial elegance for your biggest moment. High-fashion techniques applied to classic beauty.</p>
-          </div>
-          <div className="service-item">
-            <span className="service-number">04</span>
-            <h3>The Care</h3>
-            <p className="editorial-text">Luxury treatments, scalp facials, and deep molecular repair to restore your canvas.</p>
-          </div>
-       </div>
-       {/* The Vertical Cornerstone Anchor Transition Line */}
-       <div className="cornerstone-vertical-line"></div>
-    </section>
-  )
-}
+// -------------------------------------------------------------
+// MAIN APP ARCHITECTURE
+// -------------------------------------------------------------
 
 function App() {
   const [theme, setTheme] = useState('dark');
+  const [accentColor, setAccentColor] = useState('#B89C72'); // Default Gold
 
   useEffect(() => {
     const lenis = new Lenis({ duration: 1.5, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smooth: true });
@@ -160,30 +123,38 @@ function App() {
 
   const { scrollYProgress: pageScroll } = useScroll();
 
+  // Shift to light mode at the exact moment of the flashbulb
   useMotionValueEvent(pageScroll, "change", (latest) => {
-    if (latest > 0.9 && theme !== 'light') setTheme('light');
-    else if (latest <= 0.9 && theme !== 'dark') setTheme('dark');
+    if (latest > 0.95 && theme !== 'light') setTheme('light');
+    else if (latest <= 0.95 && theme !== 'dark') setTheme('dark');
   });
 
+  // Hero / Foggy Mirror Logic
   const heroRef = useRef(null);
   const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const smoothHero = useSpring(heroScroll, { stiffness: 100, damping: 30 });
   const heroScale = useTransform(smoothHero, [0, 1], [1, 1.3]);
-  const heroOpacity = useTransform(smoothHero, [0, 0.7], [1, 0]);
+  
+  const [fogPos, setFogPos] = useState({ x: -1000, y: -1000 });
+  const handleFogMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setFogPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
 
+  // Horizontal Scroll Setup
   const horizontalRef = useRef(null);
   const { scrollYProgress: horizontalScroll } = useScroll({ target: horizontalRef });
   const smoothHorizontal = useSpring(horizontalScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
-  
-  // Track calculation synced properly via offset mapped strictly to 0 to -75% for 4 exact width panels
   const xTransform = useTransform(smoothHorizontal, [0, 1], ["0%", "-75%"]);
-  
-  // The Horizontal Cornerstone Track Line expansion
   const trackLineWidth = useTransform(smoothHorizontal, [0, 1], ["0vw", "400vw"]);
+  const imageParallax = useTransform(smoothHorizontal, [0, 1], ["-15%", "15%"]);
 
   return (
-    <div className={`app-wrapper theme-${theme}`}>
+    // Inject dynamic CSS variable for Accent Color (Act 3 payoff)
+    <div className={`app-wrapper theme-${theme}`} style={{ '--color-accent': accentColor }}>
       <LiquidCursor />
+      <Flashbulb scrollProgress={pageScroll} />
+      <GoldenSpine />
       <div className="noise"></div>
 
       <nav className="navbar">
@@ -193,53 +164,92 @@ function App() {
         </div>
       </nav>
 
-      {/* 1. Hero */}
-      <section className="hero" ref={heroRef}>
-        {/* Curated clutter control: Exactly ONE highly prestigious floating tool in the hero, docked safely */}
-        <PlayfulTool initialX="60vw" initialY="15vh" delay={0} size="300px"><MirrorSVG /></PlayfulTool>
-
-        <motion.div className="hero-img-wrapper" style={{ scale: heroScale, opacity: heroOpacity, zIndex: 1 }}>
-          <img src="/hero.png" alt="Aura" className="hero-img liquid-image" />
+      {/* ACT 1: ARRIVAL & REFLECTION (FOGGY MIRROR HERO) */}
+      <section className="hero" ref={heroRef} onMouseMove={handleFogMove}>
+        
+        {/* Base layer: Crystal clear image */}
+        <motion.div className="hero-img-wrapper" style={{ scale: heroScale, zIndex: 1 }}>
+          <img src="/hero.png" alt="Aura" className="hero-img" style={{ opacity: 0.8 }} />
+        </motion.div>
+        
+        {/* Overlay layer: Foggy glass that gets "wiped" away by the cursor */}
+        <motion.div 
+          className="hero-img-wrapper hero-fog-layer" 
+          style={{ 
+            scale: heroScale, 
+            zIndex: 2,
+            WebkitMaskImage: `radial-gradient(circle 180px at ${fogPos.x}px ${fogPos.y}px, transparent 0%, black 100%)`,
+            maskImage: `radial-gradient(circle 180px at ${fogPos.x}px ${fogPos.y}px, transparent 0%, black 100%)`
+          }}
+        >
+          <img src="/hero.png" alt="Aura Fog" className="hero-img" style={{ filter: 'blur(15px) grayscale(50%) saturate(150%)' }} />
         </motion.div>
         
         <div className="container hero-content-container" style={{ zIndex: 10 }}>
-          {/* Robust Alignment Fix using Flexbox layout instead of hacky margins */}
           <div className="hero-text-grid">
-            <motion.h1 initial={{ y: "100%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }} className="text-massive kinetic-text">
+            <motion.h1 initial={{ y: "100%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }} className="text-massive kinetic-text" style={{ pointerEvents: 'auto' }}>
               ARTISTRY
             </motion.h1>
-            <motion.h1 initial={{ y: "100%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={{ duration: 1.2, delay: 0.1, ease: [0.76, 0, 0.24, 1] }} className="text-massive text-editorial kinetic-text align-end">
+            <motion.h1 initial={{ y: "100%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={{ duration: 1.2, delay: 0.1, ease: [0.76, 0, 0.24, 1] }} className="text-massive text-editorial kinetic-text align-end" style={{ pointerEvents: 'auto' }}>
               UNLEASHED
             </motion.h1>
           </div>
         </div>
       </section>
 
-      {/* 2. Manifesto Section */}
-      <ManifestoSection />
+      {/* Manifesto */}
+      <section className="manifesto-section container hover-target">
+         <h2 className="text-large text-center kinetic-text" style={{ lineHeight: 1.4, display: 'block' }}>
+           "We believe hair is a canvas. Every cut is an architectural decision. Every color is an emotion. We don't follow trends, we sculpt them. Welcome to the avant-garde of beauty."
+         </h2>
+      </section>
 
-      {/* 3. Services Section */}
-      <ServicesSection />
+      {/* ACT 3: THE PROCESS (PLAYFUL DYE MIXING) */}
+      <section className="dye-mixing-section hover-target">
+         <div className="container text-center">
+            <span className="section-label">Bespoke Formulations</span>
+            <h2 className="text-large mb-8">Mix the <span className="text-editorial">Canvas</span></h2>
+            <p className="editorial-text mx-auto">Drag the color orbs to shift the aesthetic of this entire experience. You are the artist.</p>
+            
+            <div className="orb-container mt-8">
+               <DyeOrb color="#14b8a6" label="Cyan" setAccentColor={setAccentColor} />
+               <DyeOrb color="#ec4899" label="Magenta" setAccentColor={setAccentColor} />
+               <DyeOrb color="#eab308" label="Gold" setAccentColor={setAccentColor} />
+               <DyeOrb color="#f87171" label="Crimson" setAccentColor={setAccentColor} />
+            </div>
+         </div>
+      </section>
 
-      {/* 4. Dense Horizontal Gallery */}
+      <section className="services-section hover-target">
+         <div className="marquee-container">
+            <div className="marquee-content">
+               SCULPT • COLOR • STYLE • BRIDAL • EXTENSIONS • SCULPT • COLOR • STYLE • BRIDAL • EXTENSIONS •
+            </div>
+         </div>
+         <div className="container services-grid mt-8">
+            <div className="service-item"><span className="service-number">01</span><h3>The Cut</h3></div>
+            <div className="service-item"><span className="service-number">02</span><h3>The Color</h3></div>
+            <div className="service-item"><span className="service-number">03</span><h3>The Bridal</h3></div>
+            <div className="service-item"><span className="service-number">04</span><h3>The Care</h3></div>
+         </div>
+         <div className="cornerstone-vertical-line"></div>
+      </section>
+
+      {/* ACT 4: THE ART (KINETIC PORTRAITS HORIZONTAL GALLERY) */}
       <section ref={horizontalRef} className="horizontal-section-container">
         <div className="horizontal-sticky">
           
-          {/* The Expanding Cornerstone Track Line */}
           <motion.div className="cornerstone-horizontal-line" style={{ width: trackLineWidth }} />
 
           <motion.div className="horizontal-track" style={{ x: xTransform }}>
             
             <div className="horizontal-panel">
-              {/* One elegant toy perfectly docked in the gallery track */}
-              <PlayfulTool initialX="5vw" initialY="60vh" delay={1} size="200px"><SpraySVG /></PlayfulTool>
-
               <div className="panel-content">
                 <AnimatedText text="A Curated" className="text-large" />
                 <br/>
                 <AnimatedText text="Experience." className="text-large text-editorial" delayOffset={0.2} />
                 <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.6, duration: 1 }} className="editorial-text mt-8">
-                  Step into our gallery. We approach hair as a sculptural medium, combining technical mastery with an unapologetic aesthetic vision.
+                  Hover over the typographic masks to unveil the masterpieces.
                 </motion.p>
               </div>
             </div>
@@ -251,17 +261,32 @@ function App() {
                    <span className="section-label">The Studio</span>
                    <h2 className="text-large">Precision <br/><span className="text-editorial">Craft</span></h2>
                  </div>
-                 <div className="panel-img-wrapper hover-target" style={{ borderRadius: '0 200px 0 200px', overflow: 'hidden' }}>
-                   <img src="/salon.png" alt="Salon" className="panel-img liquid-image" />
+                 
+                 {/* Kinetic Typographic Portrait 1 */}
+                 <div className="panel-img-wrapper kinetic-portrait hover-target" style={{ borderRadius: '0 200px 0 200px', overflow: 'hidden' }}>
+                   <div className="kinetic-ascii-overlay">
+                     AURA SCULPT COLOR STYLE CRAFT EDITORIAL MAGIC AURA SCULPT COLOR STYLE CRAFT EDITORIAL MAGIC AURA SCULPT COLOR STYLE CRAFT EDITORIAL MAGIC AURA SCULPT COLOR STYLE CRAFT EDITORIAL MAGIC AURA SCULPT COLOR STYLE CRAFT EDITORIAL MAGIC
+                     AURA SCULPT COLOR STYLE CRAFT EDITORIAL MAGIC AURA SCULPT COLOR STYLE CRAFT EDITORIAL MAGIC AURA SCULPT COLOR STYLE CRAFT EDITORIAL MAGIC
+                     AURA SCULPT COLOR STYLE CRAFT EDITORIAL MAGIC AURA SCULPT COLOR STYLE CRAFT EDITORIAL MAGIC AURA SCULPT COLOR STYLE CRAFT EDITORIAL MAGIC
+                   </div>
+                   <motion.img src="/salon.png" alt="Salon" className="panel-img clear-portrait" style={{ x: imageParallax, scale: 1.2 }} />
                  </div>
                </div>
             </div>
 
             <div className="horizontal-panel">
                <div className="panel-split reverse">
-                 <div className="panel-img-wrapper hover-target" style={{ borderRadius: '200px 200px 0 0', overflow: 'hidden' }}>
-                   <img src="/bridal.png" alt="Bridal" className="panel-img liquid-image" />
+                 
+                 {/* Kinetic Typographic Portrait 2 */}
+                 <div className="panel-img-wrapper kinetic-portrait hover-target" style={{ borderRadius: '200px 200px 0 0', overflow: 'hidden' }}>
+                   <div className="kinetic-ascii-overlay">
+                     BRIDAL ELEGANCE FASHION RUNWAY BEAUTY GLAMOUR BRIDAL ELEGANCE FASHION RUNWAY BEAUTY GLAMOUR BRIDAL ELEGANCE FASHION RUNWAY BEAUTY GLAMOUR
+                     BRIDAL ELEGANCE FASHION RUNWAY BEAUTY GLAMOUR BRIDAL ELEGANCE FASHION RUNWAY BEAUTY GLAMOUR BRIDAL ELEGANCE FASHION RUNWAY BEAUTY GLAMOUR
+                     BRIDAL ELEGANCE FASHION RUNWAY BEAUTY GLAMOUR BRIDAL ELEGANCE FASHION RUNWAY BEAUTY GLAMOUR BRIDAL ELEGANCE FASHION RUNWAY BEAUTY GLAMOUR
+                   </div>
+                   <motion.img src="/bridal.png" alt="Bridal" className="panel-img clear-portrait" style={{ x: imageParallax, scale: 1.2 }} />
                  </div>
+                 
                  <div className="panel-text relative">
                    <h1 className="background-number" style={{ left: '-20%' }}>02</h1>
                    <span className="section-label">Bridal</span>
@@ -280,7 +305,7 @@ function App() {
         </div>
       </section>
 
-      {/* 5. Footer */}
+      {/* 5. Footer (ACT 5 completes here) */}
       <footer className="footer-giant">
         <div className="container text-center">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }} viewport={{ once: true }}>
