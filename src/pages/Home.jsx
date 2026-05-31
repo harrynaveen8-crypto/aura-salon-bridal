@@ -9,10 +9,10 @@ const WordReveal = ({ text, className, delay = 0 }) => {
       {words.map((word, i) => (
         <motion.span 
           key={i}
-          initial={{ y: "100%", opacity: 0, rotate: 5 }}
+          initial={{ y: "100%", opacity: 0, rotate: 2 }}
           whileInView={{ y: "0%", opacity: 1, rotate: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 1.2, delay: delay + (i * 0.08), ease: [0.76, 0, 0.24, 1] }}
+          transition={{ duration: 1.2, delay: delay + (i * 0.05), ease: [0.76, 0, 0.24, 1] }}
           style={{ display: 'inline-block', transformOrigin: 'left bottom', pointerEvents: 'auto' }}
         >
           {word}
@@ -52,16 +52,13 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
     else setTheme('dark');
   });
 
+  // Replaced childish clip-path with a mature, severe parallax hero
   const heroRef = useRef(null);
-  // Track scroll for a sticky hero container to allow the clip-path expansion while scrolling
   const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const smoothHero = useSpring(heroScroll, { stiffness: 100, damping: 30 });
-  
-  // Awwwards Clip-path expansion
-  const clipPath = useTransform(smoothHero, [0, 0.6], ["inset(35% 45% 35% 45% round 200px)", "inset(0% 0% 0% 0% round 0px)"]);
-  const imageScale = useTransform(smoothHero, [0, 0.6], [1.5, 1]);
-  const textYLeft = useTransform(smoothHero, [0, 0.6], ["0%", "-100%"]);
-  const textYRight = useTransform(smoothHero, [0, 0.6], ["0%", "100%"]);
+  const imageY = useTransform(smoothHero, [0, 1], ["0%", "30%"]);
+  const textOpacity = useTransform(smoothHero, [0, 0.5], [1, 0]);
+  const textY = useTransform(smoothHero, [0, 1], ["0%", "-50%"]);
 
   const horizontalRef = useRef(null);
   const { scrollYProgress: horizontalScroll } = useScroll({ target: horizontalRef });
@@ -73,72 +70,72 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
     <>
       <Flashbulb scrollProgress={pageScroll} />
 
-      {/* EXPERT LEVEL CLIP-PATH HERO */}
-      <section ref={heroRef} className="hero-scroll-container">
-        <div className="hero-sticky">
-          
-          <motion.div className="hero-dynamic-image" style={{ clipPath }}>
-            <motion.img src="/hero.png" alt="Aura" className="hero-img" style={{ scale: imageScale, opacity: 0.7 }} />
-          </motion.div>
+      {/* MATURE FULL-BLEED PARALLAX HERO */}
+      <section ref={heroRef} className="hero-mature relative" style={{ height: '120vh', overflow: 'hidden' }}>
+        <motion.div style={{ y: imageY, width: '100%', height: '120%', position: 'absolute', top: 0, left: 0, zIndex: 1 }}>
+          <img src="/hero.png" alt="Aura" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
+        </motion.div>
+        
+        <motion.div className="container" style={{ position: 'relative', height: '100%', zIndex: 10, display: 'flex', alignItems: 'center', opacity: textOpacity, y: textY }}>
+          <div style={{ width: '100%' }}>
+             <WordReveal text="ARTISTRY" className="text-massive kinetic-text" delay={0.2} />
+             <div className="flex-between mt-8" style={{ alignItems: 'flex-start' }}>
+               <p className="editorial-text-small" style={{ maxWidth: '300px' }}>
+                 A symphony of chemical mastery and geometric precision. Based in the heart of the design district.
+               </p>
+               <WordReveal text="UNLEASHED." className="text-massive text-editorial kinetic-text" delay={0.5} />
+             </div>
+          </div>
+        </motion.div>
+      </section>
 
-          <div className="container hero-content-container">
-            <div className="hero-text-grid">
-              <motion.div style={{ y: textYLeft, zIndex: 20 }}>
-                <WordReveal text="ARTISTRY" className="text-massive kinetic-text" delay={0.2} />
-              </motion.div>
-              <motion.div style={{ y: textYRight, zIndex: 20 }} className="align-end">
-                <WordReveal text="UNLEASHED" className="text-massive text-editorial kinetic-text" delay={0.6} />
-              </motion.div>
+      {/* MASSIVE PHILOSOPHICAL SCROLL SECTION */}
+      <section className="bg-base py-32 relative z-10 border-bottom">
+        <div className="container">
+          <div className="grid-2-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8rem' }}>
+            <div className="sticky-col" style={{ position: 'sticky', top: '25vh', height: 'max-content' }}>
+              <span className="tiny-label mb-8">001 — THE DOCTRINE</span>
+              <h2 className="text-large">We reject<br/><span className="text-editorial">the ordinary.</span></h2>
+            </div>
+            <div className="scroll-col">
+              <p className="editorial-text mb-16 drop-cap">
+                The foundation of luxury is not excess; it is absolute, unforgiving curation. We dissect every strand, every formulation, and every shadow to build a silhouette that commands the room.
+              </p>
+              <img src="/salon.png" alt="Detail" className="w-full mb-16" style={{ height: '70vh', objectFit: 'cover' }} />
+              <p className="editorial-text mb-16">
+                Our directors undergo brutal training regimens. Only the top 1% of structural engineers touch your canvas. The result is an architectural integrity that lasts for months, not hours.
+              </p>
+              <img src="/bridal.png" alt="Detail" className="w-full" style={{ height: '70vh', objectFit: 'cover' }} />
             </div>
           </div>
-          
         </div>
       </section>
 
-      <section className="editorial-manifesto relative bg-base">
-        <div className="container manifesto-grid hover-target">
-           <div className="manifesto-left relative">
-             <span className="tiny-label sticky-label">001 — THE ETHOS</span>
-             <div className="vertical-ticker">
-               <div className="vertical-ticker-content">AESTHETIC / CRAFT / VISION / AESTHETIC / CRAFT / VISION / AESTHETIC / CRAFT / VISION</div>
-             </div>
-             <div className="fixed-editorial-frame">
-                <AnimatePresence>
-                  {revealImage && (
-                    <motion.div 
-                      className="editorial-frame-inner"
-                      initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
-                      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                      exit={{ opacity: 0, scale: 0.95, filter: 'blur(5px)' }}
-                      transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
-                    >
-                      <img src={revealImage} alt="Reference" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-             </div>
+      {/* EXPERT ACCORDION / DETAILS SECTION */}
+      <section className="bg-base py-32 relative z-10 border-bottom">
+        <div className="container text-center">
+           <span className="tiny-label mb-16">THE METHODOLOGY</span>
+           <WordReveal text="Precision is" className="text-large mx-auto" />
+           <WordReveal text="our only language." className="text-large text-editorial mx-auto mb-16" />
+        </div>
+        <div className="container" style={{ maxWidth: '900px' }}>
+           <div className="accordion-item border-bottom py-8">
+             <div className="flex-between"><h3 className="text-large" style={{ fontSize: '2rem' }}>01 / Consultation</h3><span className="tiny-label">[ 30 MIN ]</span></div>
+             <p className="editorial-text-small mt-8">We analyze facial geometry, lifestyle tension, and hair density. No scissors are lifted until the blueprint is perfect.</p>
            </div>
-           
-           <div className="manifesto-right">
-             <WordReveal text="We do not follow trends." className="text-large" delay={0.1} />
-             <WordReveal text="We engineer them." className="text-large text-editorial" delay={0.5} />
-             
-             <motion.p initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1.5, delay: 0.4, ease: [0.76, 0, 0.24, 1] }} className="editorial-text mt-8 drop-cap">
-               Hair is not just material; it is a structural canvas. Our approach marries 
-               <span className="text-reveal-trigger" onMouseEnter={() => setRevealImage('/salon.png')} onMouseLeave={() => setRevealImage(null)}> architectural precision </span> 
-               with raw, unapologetic aesthetics. Every cut, every formulation, every movement is meticulously calculated to elevate your 
-               <span className="text-reveal-trigger" onMouseEnter={() => setRevealImage('/bridal.png')} onMouseLeave={() => setRevealImage(null)}> natural geometry</span>. 
-             </motion.p>
-             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1.5, delay: 0.6 }} className="manifesto-stats mt-8">
-               <div className="stat-block"><span className="stat-value">EST.</span><span className="stat-label">2026</span></div>
-               <div className="stat-block"><span className="stat-value">04</span><span className="stat-label">MASTER DIRECTORS</span></div>
-               <div className="stat-block"><span className="stat-value">12K</span><span className="stat-label">HOURS OF CRAFT</span></div>
-             </motion.div>
+           <div className="accordion-item border-bottom py-8">
+             <div className="flex-between"><h3 className="text-large" style={{ fontSize: '2rem' }}>02 / Chemistry</h3><span className="tiny-label">[ 120 MIN ]</span></div>
+             <p className="editorial-text-small mt-8">Bespoke formulations. We do not use off-the-shelf color. Every pigment is mixed specifically for your skin undertone.</p>
+           </div>
+           <div className="accordion-item border-bottom py-8">
+             <div className="flex-between"><h3 className="text-large" style={{ fontSize: '2rem' }}>03 / Architecture</h3><span className="tiny-label">[ 90 MIN ]</span></div>
+             <p className="editorial-text-small mt-8">The cut. Dry-sculpting techniques to ensure the hair falls perfectly even when you wash it at home.</p>
            </div>
         </div>
       </section>
 
-      <section className="services-section hover-target relative bg-base">
+      {/* ORIGINAL SERVICES SECTION, BUT LONGER */}
+      <section className="services-section hover-target relative bg-base pt-32">
          <div className="marquee-container">
             <div className="marquee-content">SCULPT • COLOR • STYLE • BRIDAL • EXTENSIONS • SCULPT • COLOR • STYLE • BRIDAL • EXTENSIONS •</div>
          </div>
@@ -168,7 +165,7 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
               <p className="editorial-text-small">Luxury molecular repair treatments.</p>
             </div>
          </div>
-         <div className="container mt-16 mb-16 text-center" style={{ paddingBottom: '10vh' }}>
+         <div className="container mt-16 mb-16 text-center" style={{ paddingBottom: '15vh' }}>
             <Link to="/services">
               <button className="btn-magnetic hover-target" style={{ borderColor: 'rgba(240, 235, 225, 0.4)' }}>
                 <span>Explore Full Details</span>
@@ -177,6 +174,7 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
          </div>
       </section>
 
+      {/* HORIZONTAL SCROLL IS RETAINED FOR TENSION */}
       <section ref={horizontalRef} className="horizontal-section-container">
         <div className="horizontal-sticky">
           <motion.div className="horizontal-track" style={{ x: xTransform }}>
