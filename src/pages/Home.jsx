@@ -2,12 +2,31 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
+const WordReveal = ({ text, className, delay = 0 }) => {
+  const words = text.split(" ");
+  return (
+    <div style={{ overflow: 'hidden', display: 'flex', flexWrap: 'wrap', gap: '0.2em' }} className={className}>
+      {words.map((word, i) => (
+        <motion.span 
+          key={i}
+          initial={{ y: "100%", opacity: 0, rotate: 5 }}
+          whileInView={{ y: "0%", opacity: 1, rotate: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.2, delay: delay + (i * 0.08), ease: [0.76, 0, 0.24, 1] }}
+          style={{ display: 'inline-block', transformOrigin: 'left bottom', pointerEvents: 'auto' }}
+        >
+          {word}
+        </motion.span>
+      ))}
+    </div>
+  )
+}
+
 const Flashbulb = ({ scrollProgress }) => {
   const [flashed, setFlashed] = useState(false);
   const flashOpacity = useSpring(0, { stiffness: 200, damping: 20 });
   
   useMotionValueEvent(scrollProgress, "change", (latest) => {
-    // Shocking Flashbulb effect: Triggers near bottom, holds pure white for 400ms, then fades.
     if (latest >= 0.98 && !flashed) {
       setFlashed(true); 
       flashOpacity.set(1); 
@@ -42,7 +61,6 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
   const horizontalRef = useRef(null);
   const { scrollYProgress: horizontalScroll } = useScroll({ target: horizontalRef });
   const smoothHorizontal = useSpring(horizontalScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
-  // Adjusted horizontal tracking to give more tension at the end before dropping to the footer
   const xTransform = useTransform(smoothHorizontal, [0, 0.8, 1], ["0%", "-75%", "-75%"]);
   const imageParallax = useTransform(smoothHorizontal, [0, 1], ["-15%", "15%"]);
 
@@ -52,17 +70,13 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
 
       <section className="hero" ref={heroRef}>
         <motion.div className="hero-img-wrapper" style={{ scale: heroScale, y: heroY, zIndex: 1 }}>
-          <img src="/hero.png" alt="Aura" className="hero-img" style={{ opacity: 0.7 }} />
+          <img src="/hero.png" alt="Aura" className="hero-img" style={{ opacity: 0.6 }} />
         </motion.div>
         
         <div className="container hero-content-container" style={{ zIndex: 10 }}>
           <div className="hero-text-grid">
-            <motion.h1 initial={{ y: "100%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }} className="text-massive kinetic-text" style={{ pointerEvents: 'auto' }}>
-              ARTISTRY
-            </motion.h1>
-            <motion.h1 initial={{ y: "100%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={{ duration: 1.2, delay: 0.1, ease: [0.76, 0, 0.24, 1] }} className="text-massive text-editorial kinetic-text align-end" style={{ pointerEvents: 'auto' }}>
-              UNLEASHED
-            </motion.h1>
+            <WordReveal text="ARTISTRY" className="text-massive kinetic-text" delay={0.2} />
+            <WordReveal text="UNLEASHED" className="text-massive text-editorial kinetic-text align-end" delay={0.6} />
           </div>
         </div>
       </section>
@@ -74,7 +88,6 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
              <div className="vertical-ticker">
                <div className="vertical-ticker-content">AESTHETIC / CRAFT / VISION / AESTHETIC / CRAFT / VISION / AESTHETIC / CRAFT / VISION</div>
              </div>
-             {/* The new fixed editorial image frame that doesn't obscure text */}
              <div className="fixed-editorial-frame">
                 <AnimatePresence>
                   {revealImage && (
@@ -93,16 +106,16 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
            </div>
            
            <div className="manifesto-right">
-             <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1 }} className="text-large">
-               We do not follow trends. <br/><span className="text-editorial">We engineer them.</span>
-             </motion.h2>
-             <motion.p initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1, delay: 0.2 }} className="editorial-text mt-8 drop-cap">
+             <WordReveal text="We do not follow trends." className="text-large" delay={0.1} />
+             <WordReveal text="We engineer them." className="text-large text-editorial" delay={0.5} />
+             
+             <motion.p initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1.5, delay: 0.4, ease: [0.76, 0, 0.24, 1] }} className="editorial-text mt-8 drop-cap">
                Hair is not just material; it is a structural canvas. Our approach marries 
                <span className="text-reveal-trigger" onMouseEnter={() => setRevealImage('/salon.png')} onMouseLeave={() => setRevealImage(null)}> architectural precision </span> 
                with raw, unapologetic aesthetics. Every cut, every formulation, every movement is meticulously calculated to elevate your 
                <span className="text-reveal-trigger" onMouseEnter={() => setRevealImage('/bridal.png')} onMouseLeave={() => setRevealImage(null)}> natural geometry</span>. 
              </motion.p>
-             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1, delay: 0.4 }} className="manifesto-stats mt-8">
+             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1.5, delay: 0.6 }} className="manifesto-stats mt-8">
                <div className="stat-block"><span className="stat-value">EST.</span><span className="stat-label">2026</span></div>
                <div className="stat-block"><span className="stat-value">04</span><span className="stat-label">MASTER DIRECTORS</span></div>
                <div className="stat-block"><span className="stat-value">12K</span><span className="stat-label">HOURS OF CRAFT</span></div>
@@ -143,7 +156,7 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
          </div>
          <div className="container mt-16 mb-16 text-center" style={{ paddingBottom: '10vh' }}>
             <Link to="/services">
-              <button className="btn-magnetic hover-target" style={{ borderColor: 'rgba(255,255,255,0.4)' }}>
+              <button className="btn-magnetic hover-target" style={{ borderColor: 'rgba(240, 235, 225, 0.4)' }}>
                 <span>Explore Full Details</span>
               </button>
             </Link>
@@ -156,7 +169,8 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
             <div className="horizontal-panel border-right">
               <div className="panel-content">
                 <span className="tiny-label mb-8">002 — THE ARCHIVE</span>
-                <h2 className="text-large">A Curated <br/><span className="text-editorial">Experience.</span></h2>
+                <WordReveal text="A Curated" className="text-large" delay={0} />
+                <WordReveal text="Experience." className="text-large text-editorial" delay={0.3} />
                 <p className="editorial-text mt-8">Step into our structural gallery. Observe the tension between severe technical mastery and fluid aesthetic vision.</p>
                 <div className="meta-data mt-8">
                   <div>ARCHIVE NO: 0042</div><div>CURATOR: AURA DIRECTORS</div><div>STATUS: ACTIVE</div>
@@ -194,12 +208,9 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
                </div>
             </div>
 
-            {/* The Finale Tension Panel */}
             <div className="horizontal-panel" style={{ justifyContent: 'center' }}>
                <div className="text-center">
-                 <h2 className="text-massive kinetic-text" style={{ WebkitTextStroke: '2px var(--color-text)', color: 'transparent' }}>
-                   THE FINALE
-                 </h2>
+                 <WordReveal text="THE FINALE" className="text-massive kinetic-text" delay={0} />
                  <p className="editorial-text mt-8 mx-auto" style={{ textAlign: 'center', opacity: 0.5 }}>
                    Scroll down to experience the climax.
                  </p>
@@ -211,7 +222,7 @@ const Home = ({ setTheme, revealImage, setRevealImage }) => {
 
       <footer className="footer-giant">
         <div className="container text-center">
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }} viewport={{ once: true }}>
+          <motion.div initial={{ scale: 0.8, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} transition={{ duration: 1.5, ease: [0.76, 0, 0.24, 1] }} viewport={{ once: true }}>
              <h2 className="text-massive text-editorial kinetic-text" style={{ color: 'var(--color-accent)' }}>AURA.</h2>
              <Link to="/booking">
                <button className="btn-magnetic mt-8 hover-target" style={{ background: 'var(--color-text)', color: 'var(--color-bg)', borderColor: 'transparent' }}>
